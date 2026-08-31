@@ -38,6 +38,7 @@ export type Stage = {
   n: string;
   name: string;
   blurb: string;
+  detail: string;
   icon: "compass" | "research" | "audit" | "score" | "outreach";
 };
 
@@ -45,8 +46,8 @@ export const STAGES: Stage[] = [
   {
     n: "1",
     name: "Discovery",
-    blurb:
-      "We scan the market to find active local businesses in your area.",
+    blurb: "We scan the market to find active local businesses in your area.",
+    detail: "public directories · maps",
     icon: "compass",
   },
   {
@@ -54,6 +55,7 @@ export const STAGES: Stage[] = [
     name: "Research",
     blurb:
       "We collect digital signals — reviews, social activity, and contactability.",
+    detail: "sites · socials · reviews",
     icon: "research",
   },
   {
@@ -61,20 +63,21 @@ export const STAGES: Stage[] = [
     name: "Audit",
     blurb:
       "Our AI audits each digital presence to find gaps and missed opportunities.",
+    detail: "booking · menu · hours",
     icon: "audit",
   },
   {
     n: "4",
     name: "Score",
-    blurb:
-      "We score each business on fit, urgency, and confidence.",
+    blurb: "We score each business on fit, urgency, and confidence.",
+    detail: "gaps weighed · 0–100",
     icon: "score",
   },
   {
     n: "5",
     name: "Outreach",
-    blurb:
-      "Get a ranked list, pitch suggestions, and ready-to-send messages.",
+    blurb: "Get a ranked list, pitch suggestions, and ready-to-send messages.",
+    detail: "drafts ready to send",
     icon: "outreach",
   },
 ];

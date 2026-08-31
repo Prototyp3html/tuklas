@@ -412,6 +412,48 @@
   }
 }
 
+/* --- hero pin: recede + scroll-cue fade -----------------------------------
+   The hero holds via `position: sticky` while "How TUKLAS works" rises over
+   it. These two keyframes dim the pinned content and clear the scroll cue,
+   scrubbed by the section's own view-progress — no scroll listener, off the
+   main thread. `@supports` stops the keyframes from ever running on the
+   default document timeline; where scroll-timelines are unsupported the hero
+   still pins, it just doesn't dim. Gated on no-preference so a reduced-motion
+   reader keeps a static, full-opacity hero. */
+@keyframes lp-hero-recede {
+  to {
+    opacity: 0.6;
+  }
+}
+@keyframes lp-hero-cue-out {
+  to {
+    opacity: 0;
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .tuklas-lp .lp-hero-pin {
+      view-timeline-name: --lp-hero;
+      view-timeline-axis: block;
+    }
+    /* `contain` spans exactly the stretch where the 175vh section fully
+       covers the viewport — i.e. the pinned hold — independent of nav height
+       or viewport size. */
+    .tuklas-lp .lp-hero-recede {
+      animation: lp-hero-recede linear both;
+      animation-timeline: --lp-hero;
+      animation-range: contain 12% contain 96%;
+      will-change: opacity;
+    }
+    .tuklas-lp .lp-hero-cue {
+      animation: lp-hero-cue-out linear both;
+      animation-timeline: --lp-hero;
+      animation-range: contain 0% contain 12%;
+      will-change: opacity;
+    }
+  }
+}
+
 /* Belt and braces with the global reduce block above. */
 @media (prefers-reduced-motion: reduce) {
   .tuklas-lp.lp-anim .lp-reveal {

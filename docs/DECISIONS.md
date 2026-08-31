@@ -253,3 +253,42 @@ full-page reference mockup.
 in the discovery→…→outreach part … add background effects so it's not plain." Confirmed
 with the user: reference timeline animated by scroll, product mockup in HTML/CSS, full
 inline-SVG motif.
+
+---
+
+## Landing — pinned hero, animated scroll cue, "How TUKLAS works" redesign
+
+- **Hero pins on scroll.** Desktop `motion` path only: the `#top` section is `175vh` and
+  its content wrapper is `position: sticky; top: 0; h: 100dvh`, so the hero holds in place
+  while `HowItWorksSection` (`z-10`, opaque `--lp-raise`) rises up and covers it. Mobile /
+  reduced-motion: no extra height, no sticky — a normal section.
+- **Recede + scroll-cue fade are CSS scroll-driven, not JS.** `useScrollProgress` was
+  removed from `hero.tsx`. `#top` carries `view-timeline-name: --lp-hero`; `.lp-hero-recede`
+  (the content) fades `1 → 0.6` over `animation-range: contain 12%–96%` and `.lp-hero-cue`
+  fades `1 → 0` over `contain 0%–12%`. `contain` spans exactly the stretch where the 175vh
+  section fully covers the viewport — i.e. the pinned hold — regardless of nav height or
+  viewport size. Wrapped in `@supports (animation-timeline: view())` +
+  `@media (prefers-reduced-motion: no-preference)`, so unsupported browsers still get the
+  pin (just no dim) and reduced-motion gets a static full-opacity hero. Off the main
+  thread, no scroll listener.
+- **Scroll cue** is now an `<a href="#how-it-works">` (the affordance is the action) with a
+  two-chevron `.lp-float` bob (second chevron `animation-delay: 0.4s`), fading out via the
+  timeline above as soon as the scroll starts.
+- **"How TUKLAS works" reframed as a surveyed route.** `ScrollRoute` (desktop + motion):
+  a ~165vh sticky region; scrolling drives a gold diamond marker along a dashed amber rail
+  with a forest progress fill (`scaleX(progress)`), and the five stage cards activate in
+  order — *passed* (forest badge + check, card recedes to transparent), *active* (forest
+  badge, card lifts `-translate-y-1` + shadow + white surface, blurb and one-line `detail`
+  shown), *upcoming* (dashed badge + card, blurb hidden). A "Step N / 5 · {name}" readout
+  under the header tracks the marker. `StaticRoute` (mobile / reduced-motion): the same
+  cards in a vertical route, every card in the resolved state, no marker.
+- `STAGES` in `landing-data.ts` gained a `detail` string per stage
+  ("public directories · maps", …).
+
+**Why:** "the hero section should be like a sticky section until you've scrolled to [how it
+works]"; "that scroll to discover part should have an animation"; "I am lacking design in
+the How TUKLAS works section — improve it." Skills consulted: `animate`,
+`emil-design-eng`, `web-design-engineer`, `frontend-design`. Their constraints drove the
+move to CSS scroll-timelines (predetermined motion → off main thread), `transform`/
+`opacity` only, custom `--lp-ease`, 360–440ms card transitions, and reduced-motion +
+support gating shipped with the motion.
