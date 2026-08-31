@@ -19,4 +19,22 @@ The full plan — architecture, milestones, cost model, UI/UX — is in
 
 ## Status
 
-Milestone 1 — skeleton. Frontend design system + route scaffold in place; screens not built yet.
+Milestones 1–2 (backend) in progress on `backend-m1-m2`: FastAPI skeleton, JWT auth, the full
+16-table schema, Alembic migrations, and Postgres row-level-security user isolation. Frontend
+design system + route scaffold in place, built against fixtures; screens not wired to the API
+yet.
+
+### Backend dev setup
+
+Needs a local PostgreSQL and `uv`. One-time:
+
+```
+uv sync --all-groups
+cp .env.example .env
+# create the roles/DBs (as your postgres superuser):
+#   CREATE ROLE tuklas LOGIN SUPERUSER PASSWORD 'tuklas';
+#   CREATE DATABASE tuklas OWNER tuklas;  CREATE DATABASE tuklas_test OWNER tuklas;
+uv run alembic upgrade head        # also creates the tuklas_app role
+uv run uvicorn backend.main:app --reload
+uv run pytest -q
+```

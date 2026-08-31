@@ -292,3 +292,97 @@ the How TUKLAS works section — improve it." Skills consulted: `animate`,
 move to CSS scroll-timelines (predetermined motion → off main thread), `transform`/
 `opacity` only, custom `--lp-ease`, 360–440ms card transitions, and reduced-motion +
 support gating shipped with the motion.
+
+---
+
+## 2026-08-31 — Backend Milestones 1 + 2 (skeleton + auth + schema + RLS)
+
+**Decision:** Implemented BUILD_GUIDE Milestones 1 and 2 together — FastAPI skeleton, JWT
+auth, the full 16-table schema, Alembic migrations, and Postgres row-level-security user
+isolation. Backend only; the frontend stays on fixtures (`lib/types.ts` regenerates from
+OpenAPI in Milestone 8). Scope-fenced per `BUILD_GUIDE.md:464`: no campaign/discovery/
+scraping/LLM/Celery logic; the leads/campaigns/outreach/agent-runs routes are read-only
+`GET` and exist only so the four isolation tests are real.
+
+**Verification path:** a natively-installed **PostgreSQL 18** (Docker Desktop + WSL2 are
+not on the dev machine). The `Dockerfile` / `docker-compose.yml` are written and parse but
+are not run this session; CI (`postgres:18` service) is the other real-Postgres gate.
+
+### Dependency swaps (each forced by a real breakage)
+
+| Guide | Used | Why |
+|---|---|---|
+| `passlib[bcrypt]` | **`bcrypt>=4.2`** direct | passlib 1.7.4 raises `AttributeError: module 'bcrypt' has no attribute '__about__'` on bcrypt 4.x/5.x |
+| `python-jose[cryptography]` | **`pyjwt>=2.10`** | jose barely maintained (CVE-2024-33663/4); only HS256 needed |
+| `sqlalchemy` | **`sqlalchemy[asyncio]`** | the extra pulls `greenlet`, required by the async ORM |
+| — | **add `email-validator`**, **`python-multipart`** | `EmailStr` / `OAuth2PasswordRequestForm` ImportError without them |
+
+`uv python pin 3.12` (machine has 3.14; asyncpg cp314 wheels lag). `[tool.uv] package = false`
+— `backend/` is a plain package, not an installable dist; `uv.lock` committed.
+
+### Import convention
+
+Repo root is the only `sys.path` entry; every first-party import is `backend.*`.
+`backend/queue/` shadows the stdlib `queue` module (imported by Celery's `billiard`/`kombu`,
+`concurrent.futures`, pandas), so `pythonpath=["backend"]` would break the worker. Three bare
+imports (`from config import`, `from schemas.business import`) were converted.
+
+### Schema / RLS
+
+- **UUID PKs** (`gen_random_uuid()`, core in PG13+). **Enums as `VARCHAR + CHECK`**
+  (`sa.Enum(..., native_enum=False)`) with values mirrored verbatim from `lib/types.ts` —
+  autogenerate is blind to native-enum value changes and those lists churn M3–M9. New
+  `ContactType` enum for `business_contacts.type` (not in `types.ts` yet).
+- **Two DB roles.** `tuklas` (superuser, table owner) runs Alembic only
+  (`MIGRATION_DATABASE_URL`). `tuklas_app` (`NOSUPERUSER NOBYPASSRLS`, not owner) is the app
+  + test-suite role (`DATABASE_URL`). **Superusers bypass RLS unconditionally** — if the app
+  connected as `tuklas` every policy would be inert and M2 would pass for the wrong reason.
+  `tuklas_app` is created in migration `0001` (not an initdb script — those only run on a
+  fresh volume, so CI / host / existing volumes would diverge).
+- **`users` is outside RLS** — register inserts and login-by-email both happen before any
+  identity exists; no USING/WITH CHECK can express that, and no route looks a user up by
+  anything but the token `sub`. The other 15 tables carry `ENABLE` + `FORCE` RLS + an
+  identical policy `user_id = app_current_user_id()` (migration `0003`).
+- **Denormalized flat `user_id`** on transitively-owned tables (`business_evidence`,
+  `lead_scores`, `agent_tool_calls`, …), kept undriftable by parent `UNIQUE (id, user_id)` +
+  child composite FK `(parent_id, user_id)` — so every policy is the same one-liner and the
+  DB rejects a child stamped with the wrong user.
+- **RLS context:** `SELECT set_config('app.user_id', :uid, true)` (bind param — never
+  f-string a token-derived value; `SET LOCAL` can't take a bind param anyway) + an
+  `@event.listens_for(Session, "after_begin")` listener that re-applies it after every
+  `COMMIT` clears it. `app_current_user_id()` returns `NULL` when the GUC is unset →
+  fail-closed (empty result sets, never a leak).
+- Required indexes present: `ix_businesses_user_id`, `(campaign_id, score DESC)` on
+  `lead_scores`, `(campaign_id, started_at)` on `agent_runs`; `campaign_leads(campaign_id)`
+  discharged by the composite PK's leading column.
+
+### API contract (settles the open questions from the 2026-08-31 "typed fixtures" entry)
+
+- **Token transport: `Authorization: Bearer` header** (not a cookie). The guide's test uses
+  `headers=auth(...)`; `lib/api.ts` is a plain `fetch` with no credentials; header auth is
+  CSRF-immune; `/docs` Authorize works via `/auth/token`. httpOnly-refresh is a Milestone 13
+  hardening item.
+- **No `/api/v1` prefix** — routers mount at `prefix=settings.api_prefix` (empty now) so
+  it's a one-env-var change later.
+- **camelCase on the wire** — `CamelModel` base (`alias_generator=to_camel`,
+  `populate_by_name=True`); enum *values* stay snake_case verbatim.
+- **Login is a timing-flat 401** — unknown email still spends one bcrypt verify against
+  `DUMMY_PASSWORD_HASH`; identical body for unknown-email vs wrong-password.
+- **Profile is lazily created on first `PUT /me/profile`** — registration must NOT create
+  the row (RLS `WITH CHECK` would reject it with no GUC set), which is itself a live proof
+  the policies are on.
+
+### Tests
+
+Real Postgres `tuklas_test`, **TRUNCATE per test** (not rollback — rollback reverts
+`set_config` and turns the app's `commit()` into a savepoint release, hiding the
+SET-LOCAL-after-COMMIT bug). `httpx.AsyncClient(transport=ASGITransport(app=app))`
+(`AsyncClient(app=app)` removed in httpx 0.28). `test_rls.py` asserts at the DB level that
+`tuklas_app` is `rolsuper=f, rolbypassrls=f` and owns no tables — the assertion that stops
+all of M2 becoming a no-op.
+
+### Deferred (known gaps)
+
+Email verification, password reset, onboarding flow (in the route map, not M1's build list);
+Docker runtime verification + the Redis/Celery-worker "ready" check (until Docker is
+installed); frontend API wiring + `openapi-typescript` regen (Milestone 8).

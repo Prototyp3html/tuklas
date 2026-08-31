@@ -1,32 +1,14 @@
-# Skeleton only — Dockerfiles are added in Milestone 1. Not runnable yet.
+# M1/M2 stack: postgres + redis + one-shot migrate + api + idle worker.
+# `cp .env.example .env` first — `env_file: .env` hard-fails without it.
+# Each service's `environment:` block overrides `env_file` values so containers
+# talk to @postgres:5432 with the right role (env > env_file in compose).
+#
+# Volume mounts are narrow ON PURPOSE. Never `- .:/app` — it shadows the image's
+# /app/.venv with a Windows-built or absent one -> `exec: uvicorn: not found`.
+
 services:
-  api:
-    # build: ./backend
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-    ports:
-      - "8000:8000"
-    env_file: .env
-    depends_on:
-      - postgres
-      - redis
-    # TODO (Milestone 1): add build context + volume mounts
-
-  worker:
-    # build: ./backend
-    command: celery -A queue.celery_app worker --loglevel=info
-    env_file: .env
-    depends_on:
-      - postgres
-      - redis
-    # TODO (Milestone 1): share image with api
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     environment:
       POSTGRES_USER: tuklas
       POSTGRES_PASSWORD: tuklas
@@ -35,6 +17,97 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tuklas -d tuklas"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # The one migration path. An entrypoint script would race api vs worker.
+  migrate:
+    build:
+      context: .
+      target: dev
+    command: alembic upgrade head
+    restart: "no"
+    env_file: .env
+    environment:
+      MIGRATION_DATABASE_URL: postgresql+asyncpg://tuklas:tuklas@postgres:5432/tuklas
+      DATABASE_URL: postgresql+asyncpg://tuklas_app:tuklas_app@postgres:5432/tuklas
+      JWT_SECRET: ${JWT_SECRET:-dev-compose-secret-not-for-any-deploy}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app/backend
+      - ./tests:/app/tests
+      - ./alembic.ini:/app/alembic.ini:ro
+
+  api:
+    build:
+      context: .
+      target: dev
+    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://tuklas_app:tuklas_app@postgres:5432/tuklas
+      MIGRATION_DATABASE_URL: postgresql+asyncpg://tuklas:tuklas@postgres:5432/tuklas
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-dev-compose-secret-not-for-any-deploy}
+      # inotify doesn't cross a Windows bind mount -> --reload silently no-ops.
+      WATCHFILES_FORCE_POLLING: "true"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app/backend
+      - ./tests:/app/tests
+      - ./alembic.ini:/app/alembic.ini:ro
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status==200 else 1)"
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Task-less. Connects to the broker, logs `ready`, idles — proves the shared
+  # image + broker URL. Real tasks land in Milestone 3.
+  worker:
+    build:
+      context: .
+      target: dev
+    command: celery -A backend.queue.celery_app worker --loglevel=info
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://tuklas_app:tuklas_app@postgres:5432/tuklas
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-dev-compose-secret-not-for-any-deploy}
+    depends_on:
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    volumes:
+      - ./backend:/app/backend
 
 volumes:
   pgdata:
