@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { LpButton } from "../lp-button";
+import { Logo } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
 
 export function LandingNav() {
@@ -27,29 +28,33 @@ export function LandingNav() {
       <div className="mx-auto flex h-16 w-full max-w-[1120px] items-center justify-between px-5 sm:px-8">
         <a
           href="#top"
-          className="flex items-center gap-2.5"
+          className="text-[var(--lp-ink)]"
           aria-label="TUKLAS — home"
         >
-          <span
-            aria-hidden
-            className="grid h-6 w-6 place-items-center rounded-[5px] bg-[var(--lp-forest)]"
-          >
-            <span className="h-1.5 w-1.5 rounded-[1px] bg-[var(--lp-amber-mark)]" />
-          </span>
-          <span className="font-[family-name:var(--font-bricolage)] text-[0.95rem] font-semibold tracking-[0.14em] text-[var(--lp-ink)]">
-            TUKLAS
-          </span>
+          <Logo size={24} />
         </a>
 
-        <nav className="flex items-center gap-2 sm:gap-3">
+        <nav className="flex items-center gap-1 sm:gap-2">
+          <a
+            href="#how-it-works"
+            className="hidden h-11 items-center px-3 text-sm text-[var(--lp-muted)] transition-colors duration-150 hover:text-[var(--lp-ink)] md:inline-flex"
+          >
+            How it works
+          </a>
+          <a
+            href="#proof"
+            className="hidden h-11 items-center px-3 text-sm text-[var(--lp-muted)] transition-colors duration-150 hover:text-[var(--lp-ink)] md:inline-flex"
+          >
+            Product
+          </a>
           <a
             href="/login"
             className="hidden h-11 items-center px-3 text-sm text-[var(--lp-muted)] transition-colors duration-150 hover:text-[var(--lp-ink)] sm:inline-flex"
           >
-            Sign in
+            Log in
           </a>
           <LpButton href="/signup" className="h-10 px-4 text-sm">
-            Get started
+            Start discovering
           </LpButton>
         </nav>
       </div>

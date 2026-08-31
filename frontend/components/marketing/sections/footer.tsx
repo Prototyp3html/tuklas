@@ -1,10 +1,14 @@
+import { Logo } from "@/components/brand/logo";
+
 export function LandingFooter() {
   return (
     <footer className="bg-[var(--lp-paper)]">
       <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-4 px-5 py-10 text-[0.8125rem] text-[var(--lp-muted)] sm:flex-row sm:items-center sm:justify-between sm:px-8">
-        <span className="font-[family-name:var(--font-bricolage)] font-semibold tracking-[0.14em] text-[var(--lp-ink)]">
-          TUKLAS
-        </span>
+        <Logo
+          size={20}
+          wordmarkClassName="text-[0.95rem]"
+          className="text-[var(--lp-ink)]"
+        />
         <nav className="flex flex-wrap gap-x-6 gap-y-2">
           <a
             href="/login"

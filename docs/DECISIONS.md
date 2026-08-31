@@ -212,3 +212,44 @@ app to it and gives Outreach and Analytics a real shape to react to.
 
 **Kept:** warm paper + forest/amber palette, Archivo + DM Mono, the evidence dossier's
 distinct ledger voice, no `framer-motion`, the 375px / focus-ring / reduced-motion floor.
+
+---
+
+## 2026-08-31 — Landing rebuilt to the full reference (cartography theme)
+
+**Decision:** The marketing landing (`components/marketing/`) was rebuilt to match a
+full-page reference mockup.
+
+- **Section set:** Hero → *How TUKLAS Works* → *Every opportunity comes with proof* →
+  4-stat band → Final CTA → Footer. The old Problem / Dossier / Trust / Results sections
+  were dropped or merged.
+- **`.lp-display` and `.lp-figure` switched from Bricolage Grotesque to Cormorant
+  Garamond** — the reference uses the serif (same face as the logo) for every heading and
+  the big stat numbers. Bricolage is no longer loaded. Landing buttons use a plain system
+  sans.
+- **How TUKLAS Works** — the tall sticky horizontal-scroll track is replaced by a compact
+  5-node timeline (Discovery → Research → Audit → Score → Outreach) driven by
+  `useScrollProgress`: the rail draws left→right and nodes light in sequence as a ~175vh
+  sticky section passes through. Mobile / reduced-motion falls back to a plain vertical
+  timeline with everything lit.
+- **Proof section** — a checklist with checks that pop in, plus `SampleDossier`, an
+  HTML/CSS fake app-frame (mini sidebar, tabs, evidence timeline, key insight, recommended
+  service, score gauge) — self-reveals via its own `useReveal`.
+- **Cartography motif** — new `components/marketing/decor.tsx`: `TopoLines` (procedural
+  contour paths, coords rounded to `.toFixed(1/2)` to keep SSR/CSR identical),
+  `CompassRose` (ornate 8-point rose, optional `lp-spin-slow` ~90s), `DottedPath` (dashed
+  travel path + pin, clip-path draw-in on reveal). Behind the hero and proof; large in the
+  final CTA.
+- **`Gauge`** extracted from `hero-dossier.tsx` to `components/marketing/gauge.tsx`;
+  reused by the sample dossier.
+- New ambient keyframes `lp-float` / `lp-spin-slow` in globals — both auto-stilled by the
+  existing `.tuklas-lp` reduced-motion block.
+
+**Deleted:** `sections/{problem,dossier-section,trust,results,section-header}.tsx`,
+`dossier.tsx`. `landing-data.ts` pruned to `HERO_PROFILE`, `STAGES` (now with `blurb` +
+`icon`), `PROOF_POINTS`, `SAMPLE_DOSSIER`, `STATS`.
+
+**Why:** "make it as close as that reference image as possible … keep the scroll animation
+in the discovery→…→outreach part … add background effects so it's not plain." Confirmed
+with the user: reference timeline animated by scroll, product mockup in HTML/CSS, full
+inline-SVG motif.

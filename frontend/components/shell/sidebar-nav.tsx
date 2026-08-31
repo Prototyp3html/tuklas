@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
+import { Logo } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS, PAGE_ITEMS, type NavItem, isActive } from "./nav-items";
 
@@ -36,20 +37,10 @@ export function SidebarNav({
       >
         <Link
           href="/dashboard"
-          aria-label="TUKLAS home"
-          className="focus-visible:ring-ring flex items-center gap-2.5 rounded-md focus-visible:ring-2 focus-visible:outline-none"
+          aria-label="TUKLAS — home"
+          className="text-foreground focus-visible:ring-ring rounded-md focus-visible:ring-2 focus-visible:outline-none"
         >
-          <span
-            aria-hidden
-            className="bg-verify grid size-7 shrink-0 place-items-center rounded-lg"
-          >
-            <span className="bg-tier-high size-2 rounded-[3px]" />
-          </span>
-          {!collapsed && (
-            <span className="record-heading text-[0.95rem] tracking-[0.12em]">
-              Tuklas
-            </span>
-          )}
+          <Logo size={22} wordmark={!collapsed} />
         </Link>
         <button
           type="button"

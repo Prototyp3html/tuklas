@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Newsreader } from "next/font/google";
+import { Newsreader } from "next/font/google";
 
 import { Landing } from "@/components/marketing/landing";
 
-// Marketing-only faces, declared here so they load for `/` and nowhere else.
-// Grotesque for what the writer concludes; a reading serif for the argument;
-// DM Mono (from the root layout) for anything TUKLAS measured.
-const bricolage = Bricolage_Grotesque({
-  variable: "--font-bricolage",
-  subsets: ["latin"],
-  display: "swap",
-});
-
+// Marketing body face. Headings use Cormorant Garamond (root layout), data
+// uses DM Mono (root layout).
 const newsreader = Newsreader({
   variable: "--font-newsreader",
   subsets: ["latin"],
@@ -27,7 +20,7 @@ export const metadata: Metadata = {
 
 export default function LandingPage() {
   return (
-    <div className={`${bricolage.variable} ${newsreader.variable}`}>
+    <div className={newsreader.variable}>
       <Landing />
     </div>
   );

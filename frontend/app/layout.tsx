@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Archivo, DM_Mono } from "next/font/google";
+import { Archivo, Cormorant_Garamond, DM_Mono } from "next/font/google";
 
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -19,6 +19,14 @@ const dmMono = DM_Mono({
   subsets: ["latin"],
 });
 
+// The wordmark and the landing's headings — see components/brand/logo.tsx
+// and .lp-display in globals.css.
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
+  subsets: ["latin"],
+  weight: ["500", "600"],
+});
+
 export const metadata: Metadata = {
   title: "TUKLAS",
   description:
@@ -29,7 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${archivo.variable} ${dmMono.variable} antialiased`}
+      className={`${archivo.variable} ${dmMono.variable} ${cormorant.variable} antialiased`}
     >
       <body className="min-h-dvh">
         {children}

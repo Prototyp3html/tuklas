@@ -3,15 +3,13 @@
 import { useEffect, useRef } from "react";
 
 import { useMotionEnabled } from "./hooks";
-import { DossierSection } from "./sections/dossier-section";
 import { FinalCta } from "./sections/final-cta";
 import { LandingFooter } from "./sections/footer";
 import { HeroSection } from "./sections/hero";
 import { HowItWorksSection } from "./sections/how-it-works";
 import { LandingNav } from "./sections/nav";
-import { ProblemSection } from "./sections/problem";
-import { ResultsSection } from "./sections/results";
-import { TrustSection } from "./sections/trust";
+import { ProofSection } from "./sections/proof";
+import { StatsSection } from "./sections/stats";
 
 /**
  * The marketing landing. Everything visual is scoped under `.tuklas-lp` so the
@@ -24,8 +22,6 @@ export function Landing() {
   const motionEnabled = useMotionEnabled();
 
   useEffect(() => {
-    // `.lp-anim` arms the reveal system. Require IntersectionObserver too — a
-    // browser without it would otherwise leave revealed content stuck hidden.
     const armed =
       motionEnabled && typeof IntersectionObserver !== "undefined";
     rootRef.current?.classList.toggle("lp-anim", armed);
@@ -36,11 +32,9 @@ export function Landing() {
       <LandingNav />
       <main>
         <HeroSection />
-        <ProblemSection />
         <HowItWorksSection />
-        <DossierSection />
-        <TrustSection />
-        <ResultsSection />
+        <ProofSection />
+        <StatsSection />
         <FinalCta />
       </main>
       <LandingFooter />

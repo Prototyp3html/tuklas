@@ -11,8 +11,8 @@ import { cn } from "@/lib/utils";
 type Variant = "solid" | "ghost" | "invert";
 
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-md px-5 h-11 text-[0.9375rem] font-medium " +
-  "font-[family-name:var(--font-bricolage)] tracking-[-0.01em] " +
+  "inline-flex items-center justify-center gap-2 rounded-lg px-5 h-11 text-[0.9375rem] font-medium " +
+  "font-[family-name:ui-sans-serif,system-ui,sans-serif] tracking-[-0.005em] " +
   "transition-[transform,background-color,color,border-color,box-shadow] duration-150 ease-out " +
   "active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2";
 

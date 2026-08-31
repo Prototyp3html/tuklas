@@ -118,6 +118,9 @@
   --verify-hover: #163a2c;
   --alert: #a32e22; /* iron red — destructive only, rare */
 
+  /* Brand mark only — the compass needle in the logo. Not a UI colour. */
+  --brand-gold: #b68235;
+
   /* ---- shadcn/ui semantic tokens, mapped onto the tokens above ---- */
   --background: var(--paper);
   --foreground: var(--ink);
@@ -313,14 +316,13 @@
 }
 
 @layer components {
-  /* what the writer concludes — headings, numerals of judgement */
+  /* headings — Cormorant Garamond, the same face as the wordmark */
   .tuklas-lp .lp-display {
-    font-family: var(--font-bricolage), var(--font-archivo), system-ui, sans-serif;
-    font-weight: 600;
-    letter-spacing: -0.021em;
-    line-height: 1.04;
+    font-family: var(--font-cormorant), Georgia, "Times New Roman", serif;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    line-height: 1.06;
     color: var(--lp-ink);
-    font-optical-sizing: auto;
   }
   /* the case-file label — a real section marker, ordered like exhibits */
   .tuklas-lp .lp-eyebrow {
@@ -343,15 +345,23 @@
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.01em;
   }
-  /* headline statistics — the big derived numbers, in the display face so
-     they read as a conclusion rather than a terminal readout */
+  /* headline statistics — big derived numbers, in the heading face */
   .tuklas-lp .lp-figure {
-    font-family: var(--font-bricolage), var(--font-archivo), system-ui,
-      sans-serif;
+    font-family: var(--font-cormorant), Georgia, serif;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.01em;
     line-height: 1;
+  }
+
+  /* ambient motion — both auto-stilled by the reduced-motion block above */
+  .tuklas-lp .lp-float {
+    animation: lp-float 3.2s var(--lp-ease-soft) infinite;
+  }
+  .tuklas-lp .lp-spin-slow {
+    animation: lp-spin-slow 90s linear infinite;
+    transform-box: fill-box;
+    transform-origin: center;
   }
   /* the amber highlight: a marker swipe under a gap, not a full block */
   .tuklas-lp .lp-marker {
@@ -389,6 +399,17 @@
   outline: 2px solid var(--lp-forest);
   outline-offset: 2px;
   border-radius: 3px;
+}
+
+@keyframes lp-float {
+  50% {
+    transform: translateY(-3px);
+  }
+}
+@keyframes lp-spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Belt and braces with the global reduce block above. */

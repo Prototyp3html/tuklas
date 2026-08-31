@@ -1,205 +1,150 @@
-import type { DossierData } from "./dossier";
-
 /**
- * Copy and illustrative figures for the landing page. The funnel volumes
- * (1,000 → 50) are the product's real architectural design targets. The
- * results metrics are illustrative and labelled as such on the page.
+ * Copy and illustrative figures for the marketing landing. Numbers are
+ * illustrative — labelled as such on the page.
  */
 
-export const HERO_DOSSIER: DossierData = {
-  business: "Kristine's Beauty Lounge",
-  location: "Tetuan, Zamboanga City",
-  category: "Salon",
-  lines: [
-    { kind: "gap", claim: "No website", source: "google.com/maps", weight: 30 },
-    {
-      kind: "gap",
-      claim: "Takes bookings in Facebook comments",
-      source: "facebook.com",
-      weight: 18,
-    },
-    {
-      kind: "strength",
-      claim: "Posts to Facebook weekly",
-      source: "facebook.com",
-      weight: 16,
-    },
-    {
-      kind: "strength",
-      claim: "340 reviews · 4.6 stars",
-      source: "google.com/maps",
-      weight: 14,
-    },
-  ],
-};
+/* -- hero dossier -------------------------------------------------- */
 
-export const EXHIBIT_DOSSIER: DossierData = {
-  business: "Bahia Seafood Grill",
+export type HeroEvidence = { label: string; kind: "gap" | "signal" };
+export type HeroSource = { name: string; detail: string };
+
+export const HERO_PROFILE = {
+  business: "Café Amihan",
   location: "Guiwan, Zamboanga City",
-  category: "Restaurant",
-  lines: [
-    {
-      kind: "gap",
-      claim: "No website",
-      source: "google.com/maps",
-      weight: 30,
-    },
-    {
-      kind: "gap",
-      claim: "No online ordering or reservations",
-      source: "facebook.com",
-      weight: 20,
-    },
-    {
-      kind: "gap",
-      claim: "Menu only exists as photos in a 2023 post",
-      source: "facebook.com",
-      weight: 12,
-    },
-    {
-      kind: "strength",
-      claim: "Active on Facebook, replies to comments",
-      source: "facebook.com",
-      weight: 9,
-    },
-    {
-      kind: "strength",
-      claim: "210 reviews · 4.5 stars",
-      source: "google.com/maps",
-      weight: 6,
-    },
-  ],
-  recommendation:
-    "Pitch a one-page site with a live menu and a reservation form. Lead with the ordering gap — they are turning enquiries into a comment thread.",
+  category: "Café",
+  score: 92,
+  tag: "High potential",
+  evidence: [
+    { label: "No online booking", kind: "gap" },
+    { label: "High customer demand", kind: "signal" },
+    { label: "Active on social media", kind: "signal" },
+    { label: "High foot-traffic area", kind: "signal" },
+  ] as HeroEvidence[],
+  service: {
+    name: "Online booking system",
+    blurb: "Let regulars hold a table without the Messenger back-and-forth.",
+    priceRange: "₱25,000 – ₱35,000",
+  },
+  sources: [
+    { name: "Facebook Page", detail: "posts, hours, enquiries" },
+    { name: "Google Maps", detail: "reviews, foot traffic" },
+    { name: "Website scan", detail: "no booking, no site" },
+  ] as HeroSource[],
 };
 
-export const PROBLEM_PAINS = [
-  {
-    title: "Prospecting eats the week",
-    body: "Hours in Maps and Facebook, opening tabs, checking whether a place already has a site. None of it is billable.",
-  },
-  {
-    title: "A listing hides who needs you",
-    body: "A salon with a tidy site is not a prospect. One taking bookings in comments is. From the listing they look the same.",
-  },
-  {
-    title: "Cold outreach lands nowhere",
-    body: "A generic message to a business you know nothing about reads like every other generic message that week.",
-  },
-];
-
-export const PROBLEM_ANSWERS = [
-  {
-    title: "One ranked list",
-    body: "Every business already filtered to your service, your industries, your city. Sorted by how much opportunity is in it.",
-  },
-  {
-    title: "The gap is a number, sourced",
-    body: "“No website, +30” links to the Maps listing it came from. You can check the claim before you dial.",
-  },
-  {
-    title: "A draft built from evidence",
-    body: "The outreach references what was actually observed about that business. You edit it and send it yourself.",
-  },
-];
+/* -- how TUKLAS works ------------------------------------------- */
 
 export type Stage = {
   n: string;
   name: string;
-  verb: string;
-  body: string;
-  volume: number;
-  drop?: string;
+  blurb: string;
+  icon: "compass" | "research" | "audit" | "score" | "outreach";
 };
 
 export const STAGES: Stage[] = [
   {
-    n: "01",
+    n: "1",
     name: "Discovery",
-    verb: "Walk the listings",
-    body: "Sweep public directories for every business matching your service and city.",
-    volume: 1000,
+    blurb:
+      "We scan the market to find active local businesses in your area.",
+    icon: "compass",
   },
   {
-    n: "02",
+    n: "2",
     name: "Research",
-    verb: "Drop the noise",
-    body: "Remove duplicates, closed places, and the wrong categories.",
-    volume: 400,
-    drop: "600 dropped — duplicate or wrong category",
+    blurb:
+      "We collect digital signals — reviews, social activity, and contactability.",
+    icon: "research",
   },
   {
-    n: "03",
+    n: "3",
     name: "Audit",
-    verb: "Check what exists",
-    body: "Visit each site and profile. Record what is there and what is missing, with the URL.",
-    volume: 200,
-    drop: "200 dropped — no reachable presence to assess",
+    blurb:
+      "Our AI audits each digital presence to find gaps and missed opportunities.",
+    icon: "audit",
   },
   {
-    n: "04",
-    name: "Scoring",
-    verb: "Weigh the evidence",
-    body: "Add up the gaps and strengths into one opportunity score per business.",
-    volume: 100,
-    drop: "100 dropped — below your score threshold",
+    n: "4",
+    name: "Score",
+    blurb:
+      "We score each business on fit, urgency, and confidence.",
+    icon: "score",
   },
   {
-    n: "05",
+    n: "5",
     name: "Outreach",
-    verb: "Draft the opener",
-    body: "Write a first message from the evidence. Nothing sends without you.",
-    volume: 50,
-    drop: "50 ready to contact",
+    blurb:
+      "Get a ranked list, pitch suggestions, and ready-to-send messages.",
+    icon: "outreach",
   },
 ];
 
-export const TRUST_STEPS = [
-  { label: "Scan listing", detail: "Maps, directories, socials" },
-  { label: "Fetch page", detail: "the real site, if there is one" },
-  { label: "Parse signals", detail: "booking, menu, hours, contact" },
-  { label: "Weigh evidence", detail: "gaps and strengths, scored" },
-  { label: "Cite source", detail: "every point links out" },
+/* -- proof section: the checklist + the sample dossier ---------- */
+
+export const PROOF_POINTS = [
+  "Source links you can verify",
+  "Confidence scores you can trust",
+  "Insights you can act on",
+  "Pitches that convert",
 ];
 
-export const RESULT_METRICS = [
-  {
-    value: 1000,
-    suffix: "",
-    label: "businesses swept per campaign",
-    note: "design target",
+export const SAMPLE_DOSSIER = {
+  business: "Café Amihan",
+  location: "Guiwan, Zamboanga City",
+  tags: ["Non-ceramic", "Salon"],
+  score: 92,
+  timeline: [
+    { title: "No online booking found", detail: "Website scan", at: "May 28" },
+    { title: "Active Facebook page", detail: "23 posts this month", at: "May 28" },
+    { title: "High customer demand", detail: "4.6★ from 128 reviews", at: "May 27" },
+    { title: "Busy foot-traffic area", detail: "Near a commercial strip", at: "May 26" },
+  ],
+  insight:
+    "Regulars keep asking to reserve tables in the comments, but the café still books everything by hand.",
+  service: {
+    name: "Online booking system",
+    blurb: "Let customers book tables and events online, 24/7.",
+    priceRange: "₱25,000 – ₱35,000",
   },
-  {
-    value: 58,
-    suffix: "%",
-    label: "had a gap worth pitching",
-    note: "illustrative — pilot testing",
-  },
-  {
-    value: 30000,
-    prefix: "₱",
-    label: "typical value of a first booked project",
-    note: "illustrative — pilot testing",
-  },
-];
+};
 
-export const FUNNEL = [
-  { label: "Discovered", value: 1000 },
-  { label: "Researched", value: 400 },
-  { label: "Audited", value: 200 },
-  { label: "Scored", value: 100 },
-  { label: "Ready to contact", value: 50 },
-];
+/* -- stats band ----------------------------------------------- */
 
-export const EARLY_NOTES = [
+export type Stat = {
+  icon: "scan" | "target" | "reply" | "revenue";
+  value: number;
+  display: (n: number) => string;
+  label: string;
+  sub: string;
+};
+
+export const STATS: Stat[] = [
   {
-    quote:
-      "I used to spend Saturday mornings scrolling Maps. Now I open the list and start calling.",
-    who: "Freelance web developer, Zamboanga City",
+    icon: "scan",
+    value: 12548,
+    display: (n) => `${Math.round(n).toLocaleString()}+`,
+    label: "Businesses scanned",
+    sub: "Across Zamboanga & Pagadian",
   },
   {
-    quote:
-      "The source links are the part that matters. I can check a claim before I pick up the phone.",
-    who: "Small agency owner, Pagadian",
+    icon: "target",
+    value: 3482,
+    display: (n) => `${Math.round(n).toLocaleString()}+`,
+    label: "Opportunities found",
+    sub: "High-potential matches",
+  },
+  {
+    icon: "reply",
+    value: 28.6,
+    display: (n) => `${n.toFixed(1)}%`,
+    label: "Avg. reply rate",
+    sub: "From outreach campaigns",
+  },
+  {
+    icon: "revenue",
+    value: 1.4,
+    display: (n) => `₱${n.toFixed(1)}M+`,
+    label: "Revenue generated",
+    sub: "By freelancers on TUKLAS",
   },
 ];
