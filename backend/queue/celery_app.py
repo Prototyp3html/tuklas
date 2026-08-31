@@ -6,7 +6,7 @@ TODO (Milestone 3): wire the deterministic pipeline (discovery -> research -> au
 
 from celery import Celery
 
-from config import settings
+from backend.config import settings
 
 celery_app = Celery(
     "tuklas",
