@@ -1,0 +1,401 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ---------------------------------------------------------------------------
+   TUKLAS design system — the ledger.
+
+   The subject is a freelancer walking Tetuan and Putik, recording what each
+   business does and doesn't have and tallying it into a judgment. That is a
+   tally sheet: warm off-white stock, banded rows, hairline rules, a hard
+   right-hand figure column. The paper and the two inks match the marketing
+   surface exactly (see `.tuklas-lp` further down) so the product feels like a
+   continuation of the landing page rather than a different app.
+
+   Two chromatic tokens carry the entire product:
+     --verify  forest  primary actions AND confirmed strengths
+     --mark    amber   gaps, opportunity, high-tier scores
+
+   The split is deliberate. Forest is "do this / this is solid" — buttons,
+   the funnel, a ✓. Amber is "here is the money" — a missing website, an
+   opportunity score, a high tier. Amber is never red, because a gap is not
+   an error; it is the reason to make the call.
+
+   Supersedes the palette in BUILD_GUIDE.md Part 4 and the earlier
+   plum-accented "Greenbar" revision; see docs/DECISIONS.md.
+--------------------------------------------------------------------------- */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  /* One superfamily at two widths, plus a mono. The display face is Archivo at
+     wdth 120 — see the .record-heading component class below. */
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-dm-mono), ui-monospace, SFMono-Regular, monospace;
+
+  /* TUKLAS semantic colors, exposed as Tailwind utilities */
+  --color-paper: var(--paper);
+  --color-sheet: var(--sheet);
+  --color-band: var(--band);
+  --color-rule: var(--rule);
+  --color-gap: var(--mark); /* amber — a gap is opportunity, not an error */
+  --color-verify: var(--verify); /* forest — a confirmed strength */
+  --color-tier-high: var(--mark); /* amber — worth your attention */
+  --color-tier-mid: var(--ink);
+  --color-tier-low: var(--muted-ink);
+
+  /* Better curves than the CSS built-ins, applied everywhere `ease-out` and
+     friends are used — including inside the shadcn primitives. Never ease-in. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  /* So a bare `transition-colors` gets the good curve too, not just the
+     utilities that name an easing explicitly. */
+  --default-transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+  --default-transition-duration: 150ms;
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  /* shadcn's "accent" is a subtle hover surface, NOT the brand plum —
+     keep it neutral and use the `gap` / `tier-high` utilities for --mark. */
+  --color-accent-foreground: var(--secondary-foreground);
+  --color-accent: var(--secondary);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* Soft, workspace radii — the ledger's 4px corner is gone. `rounded-sm`
+     (cards) → 12px, `rounded-lg` (buttons, panels) → 16px. `rounded-xs`
+     stays a Tailwind default 2px for focus-ring corners on inline text. */
+  --radius-sm: 0.75rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 1.75rem;
+  --radius-4xl: 2rem;
+}
+
+:root {
+  /* ---- Ledger stock — warm off-white, shared with the landing ---- */
+  --paper: #faf8f5; /* page ground     */
+  --sheet: #ffffff; /* cards, surfaces */
+  --band: #f4efe4; /* alternating ledger row — warm stripe */
+  --rule: #e7e3db; /* hairlines, borders     */
+  --ink: #1a1d1a; /* text — warm near-black */
+  --muted-ink: #6b6f69; /* secondary text   */
+
+  /* ---- The two inks that carry meaning ---- */
+  --mark: #9c5d1f; /* amber  — gaps, opportunity, high-tier scores */
+  --mark-hover: #834d17;
+  --verify: #1f4a38; /* forest — primary action AND confirmed strengths */
+  --verify-hover: #163a2c;
+  --alert: #a32e22; /* iron red — destructive only, rare */
+
+  /* ---- shadcn/ui semantic tokens, mapped onto the tokens above ---- */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--sheet);
+  --card-foreground: var(--ink);
+  --popover: var(--sheet);
+  --popover-foreground: var(--ink);
+  --primary: var(--verify); /* forest — the one call to action */
+  --primary-foreground: #ffffff;
+  --secondary: var(--band);
+  --secondary-foreground: var(--ink);
+  --muted: var(--band);
+  --muted-foreground: var(--muted-ink);
+  --destructive: var(--alert);
+  --border: var(--rule);
+  --input: var(--rule);
+  --ring: var(--verify);
+
+  /* Analytics only — never on the lead page. */
+  --chart-1: var(--verify); /* forest — primary series */
+  --chart-2: var(--mark); /* amber — opportunity series */
+  --chart-3: #3d6b7d; /* steel blue — cool anchor */
+  --chart-4: #b0623a; /* warm rust — fourth series */
+  --chart-5: var(--muted-ink); /* neutral */
+
+  /* Soft radius — an intelligence workspace, not a printed record.
+     Consumed by `min()` expressions in the shadcn primitives. */
+  --radius: 0.875rem;
+
+  --sidebar: var(--sheet);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--verify);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--band);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--rule);
+  --sidebar-ring: var(--verify);
+}
+
+/* No dark theme in the MVP — this is a light, paper-grounded trust UI.
+   Kept coherent rather than dead; nothing toggles the `.dark` class yet. */
+.dark {
+  --paper: #17150f;
+  --sheet: #1e1b14;
+  --band: #262219;
+  --rule: #ffffff1c;
+  --ink: #f3efe6;
+  --muted-ink: #a39b8c;
+  --mark: #e0a44a;
+  --mark-hover: #ecb662;
+  --verify: #6fb891;
+  --verify-hover: #86c9a3;
+  --alert: #e5786b;
+  --primary-foreground: #17150f;
+  --sidebar-primary-foreground: #17150f;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    /* fixed background even if the page is short */
+    min-height: 100dvh;
+  }
+  html {
+    @apply font-sans;
+  }
+  /* Anything TUKLAS *measured* is mono and aligns in a column: weights,
+     scores, source URLs, timestamps, counts, durations, costs. */
+  .tabular {
+    font-family: var(--font-dm-mono), ui-monospace, SFMono-Regular, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  /* The world as it exists: business names and page titles, and nothing else.
+     Tracked-out expanded caps read as an official record heading rather than a
+     table cell — this carries the "dossier, not a CRM row" feeling. */
+  .record-heading {
+    font-family: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+    font-variation-settings: "wdth" 120;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* A total, closed the way a ledger closes one. */
+  .rule-double {
+    border-top: 3px double var(--ink);
+  }
+
+  /* Page and section titles — sentence case, tight tracking, no shouting.
+     `.record-heading` is now reserved for a business's own name on its
+     dossier, where the official-record voice still earns its place. */
+  .page-title {
+    font-family: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.014em;
+    line-height: 1.15;
+  }
+
+  /* Dashboard entrance — a one-time settle on load, driven by `data-in`
+     flipping to "true" a frame after mount. Reduced motion is handled by the
+     global block below (durations + delays collapse, so it snaps in). */
+  .dash-enter {
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity 0.5s var(--ease-out),
+      transform 0.5s var(--ease-out);
+  }
+  .dash-enter[data-in="true"] {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Funnel bands wipe from their own centre, staggered top to bottom. */
+  .funnel-band {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+    transform: scaleX(0.03);
+    transition:
+      opacity 0.35s var(--ease-out),
+      transform 0.45s var(--ease-out);
+  }
+  .funnel-band[data-in="true"] {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+/* Quality floor: respect prefers-reduced-motion. Fewer and gentler, not zero —
+   opacity and colour survive, movement does not. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+    /* Delays must go too. The ledger staggers with animation-delay and
+       fill-mode:both — collapsing only the duration would leave later rows
+       sitting at opacity 0 for the length of their delay, so a reader who
+       asked for less motion would get a flash of missing evidence instead. */
+    animation-delay: 0ms !important;
+    transition-delay: 0ms !important;
+  }
+}
+
+/* ===========================================================================
+   TUKLAS marketing landing — "The living dossier".
+   SCOPED: every rule here is nested under `.tuklas-lp`, which is applied only
+   to the landing root (app/page.tsx). The product UI never carries that class,
+   so the Greenbar-ledger system above is left completely intact.
+
+   This surface is a published investigation, not a product tour: warm paper,
+   forest-green as the ink of established fact and the only call to action,
+   amber as the highlighter that marks a gap worth money. Two chromatic inks.
+   Body copy is set in a reading serif on purpose — it should feel like a
+   feature story about local-business opportunity.
+   ------------------------------------------------------------------------- */
+@layer base {
+  .tuklas-lp {
+    --lp-paper: #faf8f5; /* page ground — warm off-white          */
+    --lp-surface: #ffffff; /* the dossier sheet, cards            */
+    --lp-raise: #fffdfb; /* a hair warmer, for stacked surfaces   */
+    --lp-ink: #1a1d1a; /* near-black, faintly warm-green          */
+    --lp-ink-soft: #3c403b; /* running prose                      */
+    --lp-muted: #6b6f69; /* captions, eyebrows                    */
+    --lp-line: #e7e3db; /* hairline on warm ground                */
+    --lp-line-soft: #f1ede6; /* margin grid, faintest             */
+    --lp-forest: #1f4a38; /* established fact · the CTA           */
+    --lp-forest-hover: #163a2c;
+    --lp-forest-tint: #eef2ee; /* forest at ~8%, quiet fill       */
+    --lp-amber: #b06f28; /* text-safe amber, bold only            */
+    --lp-amber-mark: #f4cd93; /* highlighter swipe behind a gap   */
+    --lp-amber-tint: #fbf0df; /* amber at ~15%, chip fill         */
+    --lp-ease: cubic-bezier(0.23, 1, 0.32, 1);
+    --lp-ease-soft: cubic-bezier(0.33, 0, 0.2, 1);
+
+    background: var(--lp-paper);
+    color: var(--lp-ink);
+    font-family: var(--font-newsreader), Georgia, "Times New Roman", serif;
+    font-optical-sizing: auto;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+@layer components {
+  /* what the writer concludes — headings, numerals of judgement */
+  .tuklas-lp .lp-display {
+    font-family: var(--font-bricolage), var(--font-archivo), system-ui, sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.021em;
+    line-height: 1.04;
+    color: var(--lp-ink);
+    font-optical-sizing: auto;
+  }
+  /* the case-file label — a real section marker, ordered like exhibits */
+  .tuklas-lp .lp-eyebrow {
+    font-family: var(--font-dm-mono), ui-monospace, monospace;
+    font-size: 0.6875rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--lp-muted);
+  }
+  /* the argument — long-form, in a reading serif */
+  .tuklas-lp .lp-prose {
+    font-family: var(--font-newsreader), Georgia, serif;
+    font-size: clamp(1.0625rem, 0.99rem + 0.34vw, 1.1875rem);
+    line-height: 1.62;
+    color: var(--lp-ink-soft);
+  }
+  /* what was measured — weights, source domains, timestamps, ledger totals */
+  .tuklas-lp .lp-data {
+    font-family: var(--font-dm-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+  /* headline statistics — the big derived numbers, in the display face so
+     they read as a conclusion rather than a terminal readout */
+  .tuklas-lp .lp-figure {
+    font-family: var(--font-bricolage), var(--font-archivo), system-ui,
+      sans-serif;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  /* the amber highlight: a marker swipe under a gap, not a full block */
+  .tuklas-lp .lp-marker {
+    background-image: linear-gradient(
+      var(--lp-amber-mark),
+      var(--lp-amber-mark)
+    );
+    background-repeat: no-repeat;
+    background-position: 0 86%;
+    background-size: 100% 0.4em;
+    padding-inline: 0.06em;
+  }
+  /* a total, closed the way a ledger closes one */
+  .tuklas-lp .lp-rule-double {
+    border-top: 3px double var(--lp-ink);
+  }
+
+  /* --- progressive-enhancement reveal ---------------------------------------
+     Inert until `.lp-anim` is added to the root by client JS (and only when
+     motion is allowed). No JS / no motion preference => content ships visible. */
+  .tuklas-lp.lp-anim .lp-reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity 0.6s var(--lp-ease),
+      transform 0.6s var(--lp-ease);
+  }
+  .tuklas-lp.lp-anim .lp-reveal[data-in="true"] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.tuklas-lp :focus-visible {
+  outline: 2px solid var(--lp-forest);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Belt and braces with the global reduce block above. */
+@media (prefers-reduced-motion: reduce) {
+  .tuklas-lp.lp-anim .lp-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}

@@ -1,0 +1,44 @@
+[project]
+name = "tuklas-backend"
+version = "0.1.0"
+description = "TUKLAS — AI lead intelligence for freelancers selling web services to local PH businesses"
+requires-python = ">=3.12"
+
+# Managed with uv. See docs/BUILD_GUIDE.md Part 3, Milestone 1.
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "sqlalchemy",
+    "asyncpg",
+    "alembic",
+    "pydantic-settings",
+    "python-jose[cryptography]",
+    "passlib[bcrypt]",
+    "httpx",
+    "beautifulsoup4",
+    "playwright",
+    "celery",
+    "redis",
+    "tenacity",
+    "rapidfuzz",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "ruff",
+    "pandas",
+    "scikit-learn",
+    "jupyter",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
