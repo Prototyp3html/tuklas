@@ -5,7 +5,7 @@ See BUILD_GUIDE.md Part 2 — "The two interfaces that make everything upgradeab
 
 from abc import ABC, abstractmethod
 
-from schemas.business import RawBusiness
+from backend.schemas.business import RawBusiness
 
 
 class BusinessDataSource(ABC):
