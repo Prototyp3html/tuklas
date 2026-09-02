@@ -386,3 +386,64 @@ all of M2 becoming a no-op.
 Email verification, password reset, onboarding flow (in the route map, not M1's build list);
 Docker runtime verification + the Redis/Celery-worker "ready" check (until Docker is
 installed); frontend API wiring + `openapi-typescript` regen (Milestone 8).
+
+## 2026-09-02 — Backend Milestone 3 (Discovery task)
+
+First pipeline stage: `POST /campaigns/{id}/discover` populates `businesses` for a
+campaign's industry, deduplicated so a re-run inserts nothing, each with a
+`business_sources` provenance row, and logs the run to `agent_runs`. Deterministic,
+no LLM, no schema change (M2 already shipped the columns + the `uq_businesses_user_domain`
+partial-unique and `ix_businesses_user_normalized_name` indexes).
+
+### Fixture source first, real scraper later
+
+`BusinessDataSource` gets one implementation this milestone — `FixtureSource`, reading
+`backend/providers/business_data/data/zamboanga_city.json` (~80 hand-built real
+Zamboanga City businesses, ≥ 50 in the beauty vertical). The whole deterministic
+pipeline (normalize → dedupe → persist → run-logging → endpoint → tests) is built and
+tested against it with zero network. `get_business_source()` in
+`backend/providers/business_data/__init__.py` is the seam: swapping in
+`MapsScraperSource` (Playwright) / `PlacesApiSource` is a one-line change there.
+Scraping — browser install, per-URL HTML cache, robots.txt, 2–4 s rate limiting — is a
+follow-up once the pipeline is proven.
+
+### Celery: eager in dev/CI, and the request path skips the broker
+
+`celery_app.conf.task_always_eager = settings.celery_task_always_eager` (default `True`).
+A real worker + Redis arrives with Docker. The `POST .../discover` route does **not**
+enqueue — it `await`s `run_discovery(db, campaign)` directly and returns the finished
+`DiscoveryResult`. Reason: `discovery_task` wraps the async core in `asyncio.run()`, which
+raises inside a running event loop; the request already has one. `discovery_task` exists
+for the future worker and is exercised in eager mode from sync test code (its async core,
+`_run_discovery`, is tested directly).
+
+### `backend/agents/` package + the shared run-logging wrapper
+
+New `backend/agents/` holds pipeline stages. `agents/base.py::agent_run(session, campaign,
+agent)` is an async context manager that opens an `agent_runs` row, times it, and flips
+`status` to `succeeded`/`failed` — every future stage (research, audit, …) reuses it.
+`agents/discovery/` is a package: `normalize.py` + `dedupe.py` are pure (no I/O),
+`runner.py` is the entry point.
+
+### Normalization + dedupe rules
+
+- `normalize_name` — casefold, strip accents (NFKD), collapse punctuation, drop trailing
+  generic/legal suffix words (`inc corp salon spa clinic …`) so "Glow & Go Salon" and
+  "Glow and Go Salon, Inc." both key to "glow go".
+- `to_e164` — PH numbers → `+63…`; `09xx`, `+639xx`, `639xx`, `(062) …` landlines; `None`
+  if the digit count is implausible.
+- `extract_domain` — registrable host, `www.` stripped; **social hosts
+  (facebook/instagram/…) return `None`** — those are contacts, never a business's site.
+- A candidate is a duplicate when: same non-null `domain`; **or** `normalized_name` exact /
+  `rapidfuzz.token_sort_ratio ≥ DISCOVERY_FUZZY_THRESHOLD` (88) **and** corroborated by a
+  shared address token (a small locality stoplist — "zamboanga", "city", "street", … —
+  removed first so a common suffix can't corroborate), an equal E.164 phone, or neither
+  side having any address/phone. The corroboration guard is what keeps two "Sunrise Spa"
+  in different barangays from merging.
+
+### Deferred
+
+Failed `agent_runs` rows currently roll back with the request transaction (single commit at
+the end of the route). Durable failure logging on its own transaction comes with the real
+Celery worker. Also deferred: `campaign_leads` linking, research/audit/scoring/outreach
+(M4+), rich `LeadSummary`/`LeadDetail` shapes (M8).
