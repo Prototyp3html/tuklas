@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
-from backend.api import agent_runs, auth, campaigns, leads, outreach, profile
+from backend.api import agent_runs, audit, auth, campaigns, leads, outreach, profile
 from backend.config import settings
 from backend.db.session import SessionLocal, engine
 
@@ -27,7 +27,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for _module in (auth, profile, leads, campaigns, outreach, agent_runs):
+for _module in (auth, profile, leads, campaigns, outreach, agent_runs, audit):
     app.include_router(_module.router, prefix=settings.api_prefix)
 
 

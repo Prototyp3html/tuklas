@@ -51,6 +51,9 @@ class Settings(BaseSettings):
 
     # ---- Crawler ----
     crawler_user_agent: str = "TuklasBot/0.1 (+https://example.com/bot)"
+    crawler_timeout_seconds: float = 5.0
+    crawler_max_bytes: int = 2_000_000  # 2 MB page cap
+    crawler_respect_robots: bool = True
 
     # ---- Discovery (Milestone 3) ----
     discovery_default_limit: int = 50
