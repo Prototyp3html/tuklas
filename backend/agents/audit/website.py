@@ -11,13 +11,19 @@ from __future__ import annotations
 import re
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
-from urllib.parse import urlsplit
 
 import httpx
 from bs4 import BeautifulSoup
 
 from backend.config import settings
 from backend.core.http import FetchResult, RobotsGate, fetch_page
+from backend.core.webparse import (
+    PHONE_RE,
+    find_social_links,
+    has_viewport,
+    hrefs_of,
+    visible_text,
+)
 from backend.models.enums import WebsiteStatus
 from backend.schemas.audit import WebsiteReport
 
@@ -28,16 +34,6 @@ _BOOKING_RE = re.compile(
 )
 _ORDERING_RE = re.compile(
     r"order|delivery|menu|foodpanda|grabfood|ubereats", re.I
-)
-_PHONE_RE = re.compile(r"(?:\+?63|0)\d[\d\-\s]{7,}\d")
-_SOCIAL_HOSTS = (
-    "facebook.com",
-    "instagram.com",
-    "tiktok.com",
-    "twitter.com",
-    "x.com",
-    "linktr.ee",
-    "youtube.com",
 )
 _JS_TEXT_FLOOR = 500  # guide's Playwright-escalation trigger (flagged, not performed)
 _EMPTY_TEXT_FLOOR = 200
@@ -65,25 +61,17 @@ async def check_website(domain: str, *, fetch: Fetch) -> WebsiteReport:
         )
 
     soup = BeautifulSoup(result.body or "", "html.parser")
-    text = soup.get_text(" ", strip=True)
+    text = visible_text(soup)
     text_len = len(text)
 
-    hrefs = [a.get("href", "") for a in soup.find_all("a", href=True)]
+    hrefs = hrefs_of(soup)
     anchor_text = " ".join(a.get_text(" ", strip=True) for a in soup.find_all("a"))
     haystack = f"{' '.join(hrefs)} {anchor_text}"
 
     title_tag = soup.title
-    viewport = soup.find("meta", attrs={"name": re.compile(r"^viewport$", re.I)})
-    social = sorted(
-        {
-            h
-            for h in hrefs
-            if any(host in urlsplit(h).netloc.lower() for host in _SOCIAL_HOSTS)
-        }
-    )
     has_contact = any(
         h.lower().startswith(("tel:", "mailto:")) for h in hrefs
-    ) or bool(_PHONE_RE.search(text))
+    ) or bool(PHONE_RE.search(text))
 
     report = WebsiteReport(
         reachable=True,
@@ -91,10 +79,10 @@ async def check_website(domain: str, *, fetch: Fetch) -> WebsiteReport:
         status_code=result.status_code,
         is_https=result.is_https,
         title=title_tag.get_text(strip=True) if title_tag else None,
-        has_viewport=viewport is not None,
+        has_viewport=has_viewport(soup),
         has_booking=bool(_BOOKING_RE.search(haystack)),
         has_ordering=bool(_ORDERING_RE.search(haystack)),
-        social_links=social,
+        social_links=find_social_links(hrefs),
         has_contact=has_contact,
         js_rendered_suspected=text_len < _JS_TEXT_FLOOR,
     )

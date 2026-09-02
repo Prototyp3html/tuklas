@@ -60,6 +60,11 @@ class Settings(BaseSettings):
     discovery_max_results: int = 100  # BUILD_GUIDE cap per campaign
     discovery_fuzzy_threshold: int = 88  # rapidfuzz token_sort_ratio; guide says ~90
 
+    # ---- Research (Milestone 5) ----
+    research_search: str = "fixture"  # "fixture" | "ddg" (live DuckDuckGo HTML)
+    research_ddg_url: str = "https://html.duckduckgo.com/html/"
+    research_max_pages_per_business: int = 5  # BUILD_GUIDE crawl budget
+
     # ---- Queue behaviour ----
     # Dev/CI run the pipeline inline (no broker). A real Celery worker + Redis
     # arrives with Docker; flip this off there.
