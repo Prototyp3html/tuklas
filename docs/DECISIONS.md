@@ -495,3 +495,58 @@ no browser). Multi-page crawl / "max 10 pages per business" (M4 hits the homepag
 `social_presence`, `digital_gaps`, `confidence` on `digital_audits` — M5 research + M6 audit
 own those. `campaign_leads` linking, so `audit-websites` currently audits the user's whole
 business pool rather than one campaign's.
+
+## 2026-09-02 — Backend Milestone 5 (Research task + evidence store)
+
+`POST /campaigns/{id}/research` gathers cited facts per business — phone, email, social
+handles, Facebook followers/likes, address, site-freshness, website-reachable — into
+`business_evidence`, **every row with a `source_url` + `collected_at`**. `GET
+/leads/{id}/evidence` reads them back. Deterministic, no LLM, no schema change (`claim`/
+`observed_value`/`source_url` were already NOT NULL; `kind`/`weight`/`factor` stay NULL for
+M6/M7).
+
+### Idempotency via a claim namespace
+
+Research owns a fixed set of claim keys (`RESEARCH_CLAIMS` in
+`backend/agents/research/runner.py`). A re-run does `DELETE FROM business_evidence WHERE
+business_id = :b AND claim = ANY(:RESEARCH_CLAIMS)` then re-inserts — so it never piles up
+and never touches rows a later milestone adds. **M6/M7 must use disjoint claim keys or the
+`kind`/`weight`/`factor` columns.** No migration was needed; a `producer` column would have
+been the alternative.
+
+### Injectable fetch + search seams (same pattern as M3/M4)
+
+`run_research(session, campaign, *, fetch, search)` — both required. The route wires the
+real ones as FastAPI deps (`get_fetcher` reused from `api/audit.py`; `get_search` →
+`get_search_provider()`), overridden in tests. Providers default to fixtures and are the
+only ones CI touches.
+
+- **Search**: `backend/providers/search/` — `FixtureSearch` (canned `data/results.json`,
+  substring-keyed by business name) is the default; `DuckDuckGoSearch`
+  (`RESEARCH_SEARCH=ddg`) is the real opt-in — DDG's HTML endpoint, no key, more
+  scrape-tolerant than Google. **Google/Bing SERP scraping is not built** (same call as the
+  Maps scraper). Live smoke: `"Alavar Seafood Restaurant Zamboanga"` → 5 real results
+  (its Facebook page, RestaurantGuru, TripAdvisor…).
+- **Fetch**: reuses M4's `fetch_page` / `http_fetcher`. Research fetches the homepage, then
+  one hop to any social URLs found on it, plus up to `RESEARCH_MAX_PAGES_PER_BUSINESS` (5)
+  search-result URLs.
+
+### `webparse.py` refactor
+
+Shared HTML helpers (`SOCIAL_HOSTS`, `PHONE_RE`, `EMAIL_RE`, `find_social_links`,
+`find_emails`, `find_phones`, `meta_content`, `has_viewport`, `visible_text`,
+`find_copyright_year`) moved from `agents/audit/website.py` to `backend/core/webparse.py`;
+`website.py` imports them (M4 tests unchanged, still green).
+
+### Facebook is best-effort
+
+`parse_facebook` reads `og:title` + `"<n> followers"` / `"<n> people like this"` from a
+public FB page's HTML and flags `login_walled`. FB serves bots a thin/gated page, so any
+follower count lands at low confidence and a miss never fails the run. No auth, no scraping
+past the public HTML.
+
+### Known rough edge
+
+PH phone extraction (the shared `PHONE_RE`) is loose — the live smoke pulled `9912483` from
+"991-2483" (dropped the `(062)` area code). Tightening it is a follow-up; it feeds M7
+scoring, not a hard gate.
