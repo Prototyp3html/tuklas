@@ -1,7 +1,8 @@
 """Business-related Pydantic schemas.
 
-TODO (Milestone 3): flesh out RawBusiness and add normalized / stored variants.
-This stub exists so the provider interfaces in backend/providers/ can import it.
+`RawBusiness` is what a data source hands back, verbatim. `NormalizedBusiness` is
+the cleaned form the discovery pipeline dedupes and persists. Both are internal
+(no camelCase alias generator) — the wire-facing lead shapes arrive in M8.
 """
 
 from pydantic import BaseModel
@@ -17,4 +18,20 @@ class RawBusiness(BaseModel):
     category: str | None = None
     lat: float | None = None
     lng: float | None = None
+    source_id: str | None = None
+
+
+class NormalizedBusiness(BaseModel):
+    """A `RawBusiness` after name/phone/domain normalization — the unit the
+    discovery deduper compares and the runner writes to `businesses`."""
+
+    name: str
+    normalized_name: str
+    domain: str | None = None
+    phone: str | None = None  # E.164, or None if unparseable
+    address: str | None = None
+    category: str | None = None
+    lat: float | None = None
+    lng: float | None = None
+    source_name: str
     source_id: str | None = None

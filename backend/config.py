@@ -52,6 +52,16 @@ class Settings(BaseSettings):
     # ---- Crawler ----
     crawler_user_agent: str = "TuklasBot/0.1 (+https://example.com/bot)"
 
+    # ---- Discovery (Milestone 3) ----
+    discovery_default_limit: int = 50
+    discovery_max_results: int = 100  # BUILD_GUIDE cap per campaign
+    discovery_fuzzy_threshold: int = 88  # rapidfuzz token_sort_ratio; guide says ~90
+
+    # ---- Queue behaviour ----
+    # Dev/CI run the pipeline inline (no broker). A real Celery worker + Redis
+    # arrives with Docker; flip this off there.
+    celery_task_always_eager: bool = True
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
