@@ -55,14 +55,20 @@ async def create_business(user: User, *, name: str = "ABC Salon", **extra) -> Si
 
 
 async def create_campaign(
-    user: User, *, name: str = "Zamboanga salons", service: str = "Website"
+    user: User,
+    *,
+    name: str = "Zamboanga salons",
+    service: str = "Website",
+    industries: list[str] | None = None,
+    location: str = "Zamboanga City",
 ) -> SimpleNamespace:
     async with _scoped(user) as s:
         row = Campaign(
             user_id=user["id"],
             name=name,
             service=service,
-            location="Zamboanga City",
+            industries=industries or [],
+            location=location,
         )
         s.add(row)
         await s.commit()
