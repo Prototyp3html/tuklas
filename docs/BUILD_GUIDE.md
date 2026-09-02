@@ -99,7 +99,7 @@ Deploy      Docker Compose → Railway
      ▼                   ▼                   ▼
 ┌─────────┐  ┌─────────┐  ┌────────┐  ┌───────────┐  ┌──────────┐
 │Discovery│→ │Research │→ │ Audit  │→ │Opportunity│→ │ Outreach │
-│ no LLM  │  │ no LLM  │  │ no LLM │  │  Ollama   │  │  Ollama  │
+│  task   │  │  task   │  │  task  │  │ LLM agent │  │ LLM agent│
 └─────────┘  └─────────┘  └────────┘  └───────────┘  └──────────┘
      │            │            │            │              │
      └────────────┴────────────┴────────────┴──────────────┘
@@ -115,9 +115,11 @@ Deploy      Docker Compose → Railway
 └─────────────────────────────────────────────────────────┘
 ```
 
-**The single most important thing on this diagram:** agents 1–3 make zero LLM calls. They scrape, fetch, and check with plain code. Only agents 4 and 5 touch a model, and only for leads that already passed a deterministic filter. This is what keeps your AI cost near zero.
+**The single most important thing on this diagram:** the first three stages — Discovery, Research, Audit — are deterministic *tasks* that make zero LLM calls. They scrape, fetch, and check with plain code. Only the last two — Opportunity and Outreach — are *agents* that touch a model, and only for leads that already passed a deterministic filter. This is what keeps your AI cost near zero.
 
-### The cost funnel (memorize this)
+A **task** follows rules: it scrapes, checks, deduplicates, composes. Same input, same output. An **agent** reasons: it judges fit, writes copy, interprets evidence. TUKLAS is a deterministic pipeline with exactly two reasoning points.
+
+### The cost funnel (tasks before agents)
 
 ```
 1,000 businesses discovered
@@ -131,7 +133,25 @@ Deploy      Docker Compose → Railway
    50 qualified leads
 ```
 
-If you ever find yourself sending all 1,000 to an LLM, stop and re-read this.
+The first three stages are tasks; only the last stage runs an agent. Roughly 95% of the businesses you discover never reach an LLM. If you ever find yourself sending all 1,000 to a model, stop and re-read this.
+
+### Why the split between tasks and agents matters
+
+Three of the five pipeline stages are **tasks** — plain deterministic code. Two are **agents** — they call a model. Keeping them separate is what protects your budget and your ability to debug.
+
+**Tasks** (Discovery, Research, Audit):
+- Fast — seconds per 100 businesses
+- Free — ₱0 per run
+- Debuggable — you can see exactly which rule matched
+- Deterministic — same input, same output, every time
+
+**Agents** (Opportunity, Outreach):
+- Slower — seconds per business
+- Metered — a fraction of a peso per call
+- Harder to debug — the reasoning is a black box
+- Flexible — they handle nuance and phrasing that rules can't
+
+Run every task first and both agents last, on the survivors only. That ordering *is* the cost funnel above, restated as an architecture rule.
 
 ### Repository structure
 
@@ -176,13 +196,13 @@ tuklas/
 │   │   ├── dashboard.py
 │   │   └── agent_runs.py
 │   │
-│   ├── agents/
+│   ├── agents/                 ← 3 deterministic tasks + 2 LLM agents
 │   │   ├── base.py             ← shared run-logging wrapper
-│   │   ├── discovery.py
-│   │   ├── research.py
-│   │   ├── audit.py
-│   │   ├── opportunity.py
-│   │   └── outreach.py
+│   │   ├── discovery.py        ← task, no LLM
+│   │   ├── research.py         ← task, no LLM
+│   │   ├── audit.py            ← task, no LLM
+│   │   ├── opportunity.py      ← agent, LLM
+│   │   └── outreach.py         ← agent, LLM
 │   │
 │   ├── providers/              ← THE PLUGGABLE LAYER
 │   │   ├── business_data/
@@ -372,10 +392,10 @@ Fifteen milestones. Realistic solo timeline: **5–7 months to paying users.** W
 | 0 | Validation interviews | 1–2 | 20 conversations done |
 | 1 | Skeleton + auth | 1 | You can log in |
 | 2 | Database + isolation | 1 | Cross-user test passes |
-| 3 | Discovery agent | 1–2 | 50 real Zamboanga City businesses in DB |
+| 3 | Discovery task | 1–2 | 50 real Zamboanga City businesses in DB |
 | 4 | Website analyzer | 1 | Correct on 20 hand-checked sites |
-| 5 | Research agent + evidence | 1–2 | Every claim has a source URL |
-| 6 | Audit agent | 1 | Structured audit per business |
+| 5 | Research task + evidence | 1–2 | Every claim has a source URL |
+| 6 | Audit task | 1 | Structured audit per business |
 | 7 | Scoring | 1–2 | Top 10 leads look right to you |
 | 8 | Dashboard + lead UI | 2–3 | Usable without the terminal |
 | 9 | Outreach agent | 1 | Drafts you'd actually send |
@@ -490,7 +510,7 @@ async def test_user_cannot_read_other_users_leads(client, user_a, user_b):
 
 ---
 
-### MILESTONE 3 — Discovery agent (weeks 5–6)
+### MILESTONE 3 — Discovery task (weeks 5–6)
 
 **Goal:** 50 real Zamboanga City salons in your database, deduplicated.
 
@@ -516,7 +536,7 @@ async def test_user_cannot_read_other_users_leads(client, user_a, user_b):
 
 **Claude prompt:**
 ```
-Milestone 3 of TUKLAS only. Build the Discovery agent in Python:
+Milestone 3 of TUKLAS only. Build the Discovery task in Python:
 a BusinessDataSource abstract interface, one implementation scraping
 Google Maps with Playwright, normalization (names, phones, domains),
 deduplication with rapidfuzz, provenance tracking, and a Celery task.
@@ -527,7 +547,7 @@ or scoring. Explain the plan first, then implement, then stop.
 
 ---
 
-### MILESTONE 4 — Website analyzer (week 7)
+### MILESTONE 4 — Website analyzer — feeds the audit task (week 7)
 
 **Goal:** for each business, know deterministically whether they have a working website and what's on it.
 
@@ -544,7 +564,7 @@ or scoring. Explain the plan first, then implement, then stop.
 
 ---
 
-### MILESTONE 5 — Research agent + evidence store (weeks 8–9)
+### MILESTONE 5 — Research task + evidence store (weeks 8–9)
 
 **Goal:** every future claim TUKLAS makes traces back to a URL.
 
@@ -561,7 +581,7 @@ or scoring. Explain the plan first, then implement, then stop.
 
 ---
 
-### MILESTONE 6 — Audit agent (week 10)
+### MILESTONE 6 — Audit task (week 10)
 
 **Goal:** one structured digital audit per business.
 
@@ -580,7 +600,7 @@ class DigitalAudit(BaseModel):
     confidence: float = Field(ge=0, le=1)
 ```
 
-Still deterministic — this composes Milestones 4 and 5 outputs into a structured verdict.
+Still a deterministic task — no LLM — this composes Milestones 4 and 5 outputs into a structured verdict.
 
 **Done when:** every business has an audit row, and every audit's `evidence_ids` are non-empty.
 
@@ -718,9 +738,11 @@ Every evidence line links to its source URL. That link is your entire credibilit
 **Goal:** when something goes wrong, you can see exactly where.
 
 **Build:**
-- `/agent-runs` page: list of runs with agent, status, duration, cost
+- `/agent-runs` page: list of runs with stage, status, duration, cost
 - Click into a run: every tool call with input/output, timing, errors
 - Never expose model chain-of-thought — log decisions and tool calls, not hidden reasoning
+
+"Agent runs" is the historical name for this log. A *run* is any pipeline stage — the three tasks as well as the two agents — so the screen shows what each one did, how long it took, and what it cost (₱0 for the tasks).
 
 **Done when:** a campaign fails and you diagnose it from the UI in under two minutes.
 
@@ -1139,7 +1161,7 @@ Note input — borderless textarea at the bottom of lead detail. Saves on blur, 
 
 Activity timeline — the lead's activity tab. Chronological log of status changes, notes, outreach events; each with timestamp, type icon, description.
 
-Agent run row — on `/runs` and `/admin/runs`: agent name, status badge, business count, duration (mono), AI cost (mono), completed time.
+Agent run row — on `/runs` and `/admin/runs`: stage name (task or agent), status badge, business count, duration (mono), AI cost (mono), completed time.
 
 Tool call row — inside run detail: tool name (mono), input summary, duration, outcome. The most granular view in the product.
 
@@ -1306,10 +1328,10 @@ If no, it doesn't go in the MVP. Not "it's cool." Not "it's technically interest
 [ ] 0   20 validation interviews, synthesized
 [ ] 1   Skeleton, Docker Compose, JWT auth, CI
 [ ] 2   Full schema, RLS, cross-user isolation test passing
-[ ] 3   Discovery agent, 50 real businesses, zero duplicates
+[ ] 3   Discovery task, 50 real businesses, zero duplicates
 [ ] 4   Website analyzer, correct on 20 hand-checked sites
-[ ] 5   Research agent, every claim has a source URL
-[ ] 6   Audit agent, structured output, evidence-linked
+[ ] 5   Research task, every claim has a source URL
+[ ] 6   Audit task, structured output, evidence-linked
 [ ] 7   Scoring, top 10 leads you'd actually call
 [ ] 8   Dashboard + lead detail, no terminal needed
 [ ] 9   Outreach drafts you'd send unedited
