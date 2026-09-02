@@ -40,13 +40,15 @@ async def run_discovery(
         candidates = dedupe_batch(
             [normalize(r, source_name=source.source_name()) for r in raw]
         )
+        # Count rows the source returned twice within this batch, so that
+        # inserted + duplicates == discovered always holds.
+        duplicates = len(raw) - len(candidates)
 
         # RLS already scopes this SELECT to campaign.user_id.
         existing = list((await session.execute(select(Business))).scalars().all())
         seen: list = list(existing)
 
         new_pairs: list[tuple[Business, NormalizedBusiness]] = []
-        duplicates = 0
         for cand in candidates:
             if find_duplicate(cand, seen) is not None:
                 duplicates += 1

@@ -447,3 +447,42 @@ Failed `agent_runs` rows currently roll back with the request transaction (singl
 the end of the route). Durable failure logging on its own transaction comes with the real
 Celery worker. Also deferred: `campaign_leads` linking, research/audit/scoring/outreach
 (M4+), rich `LeadSummary`/`LeadDetail` shapes (M8).
+
+## 2026-09-02 — Live business data via OpenStreetMap / Overpass (not the Maps scraper)
+
+**Decision:** ship a real data source now, alongside the fixture — `OverpassSource`
+(`backend/providers/business_data/overpass.py`), selected with `DISCOVERY_SOURCE=overpass`.
+The Playwright + Google Maps scraper the BUILD_GUIDE names for M3 is **not** built.
+
+**Why now, not "after all milestones":** the guide puts data sourcing at M3 on purpose — to
+find data problems before M5–M7 build on top. Deferring it defeats that. Real Zamboanga data
+did immediately surface a small reporting bug (see below).
+
+**Why Overpass, not Maps/Playwright or Places API:**
+- *Maps + Playwright* — fragile DOM, CI complexity, a ~150 MB browser this machine's Smart
+  App Control may block (it already blocked `hf.exe` and `uvicorn.exe`), against Google ToS,
+  and non-deterministic (breaks the exact-count discovery tests). Only ever as an opt-in
+  non-CI source.
+- *Google Places API* — the better long-term source, but needs a billing-enabled Google
+  Cloud key the user must provision. Left as the next swap; `get_business_source()` is the
+  seam.
+- *Overpass/OSM* — free, no key, no browser, plain HTTP+JSON (fully mockable). Coverage is
+  thinner (many businesses lack `phone`/`website`/`addr:*` tags) but it is genuine. Live
+  smoke: `restaurant` → 50 real results (Alavar, Antonio's Steakhouse, …), `salon` → ~11.
+
+**Design:**
+- `FixtureSource` stays the **default** and the only source tests/CI use — determinism
+  preserved. `OverpassSource` is opt-in via env and never hit by the test suite (its own
+  tests mock `httpx` with `MockTransport`).
+- Category → OSM tag selectors (`_CATEGORY_SELECTORS`); unmapped categories fall back to an
+  `["name"~...,i]` match. Zamboanga City uses a hard-coded bbox (area-name matching
+  fragments as "Zamboanga City" vs "City of Zamboanga"); other locations use an `area[...]`
+  clause.
+- `overpass-api.de` returns **406** for User-Agents containing `example.com`, so this source
+  sends its own `tuklas-discovery/…` UA rather than `CRAWLER_USER_AGENT`. One backoff-retry
+  on **429** (busy public slot).
+
+**Incidental fix:** `run_discovery` now sets `duplicates = len(raw) - len(candidates)` up
+front (in-batch dedupe removals were previously uncounted), so
+`inserted + duplicates == discovered` always holds. Real OSM data returns the same place as
+both a node and a way; the fixture's first 50 never did, which is why this went unnoticed.

@@ -56,6 +56,10 @@ class Settings(BaseSettings):
     discovery_default_limit: int = 50
     discovery_max_results: int = 100  # BUILD_GUIDE cap per campaign
     discovery_fuzzy_threshold: int = 88  # rapidfuzz token_sort_ratio; guide says ~90
+    # "fixture" (default, deterministic — tests + CI) | "overpass" (live OpenStreetMap)
+    discovery_source: str = "fixture"
+    discovery_overpass_url: str = "https://overpass-api.de/api/interpreter"
+    discovery_overpass_timeout: float = 45.0
 
     # ---- Queue behaviour ----
     # Dev/CI run the pipeline inline (no broker). A real Celery worker + Redis
