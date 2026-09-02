@@ -447,3 +447,51 @@ Failed `agent_runs` rows currently roll back with the request transaction (singl
 the end of the route). Durable failure logging on its own transaction comes with the real
 Celery worker. Also deferred: `campaign_leads` linking, research/audit/scoring/outreach
 (M4+), rich `LeadSummary`/`LeadDetail` shapes (M8).
+
+## 2026-09-02 — Backend Milestone 4 (Website analyzer)
+
+`POST /campaigns/{id}/audit-websites` checks each business's site and writes the
+website-derived fields of `digital_audits` (`has_website`, `website_status`, `has_booking`,
+`has_ordering`, `mobile_friendly`). Deterministic, no LLM, no schema change (`digital_audits`
+columns are all defaulted, so a partial write is clean).
+
+### Injectable `Fetch` seam
+
+`check_website(domain, *, fetch)` takes a **required** keyword fetch callable — no
+network-capable default, so a test can't forget to inject one. The route supplies the real
+one via a FastAPI dependency (`get_fetcher` → `http_fetcher()` context manager, one shared
+`httpx.AsyncClient` + robots cache per run); tests override it with `app.dependency_overrides`
+and `fetch_page` unit tests use `httpx.MockTransport`. Same reasoning as M3's data-source
+seam: the fixture businesses' domains are invented and won't resolve, and there is no
+browser here.
+
+### `fetch_page` safety stack (`backend/core/http.py`)
+
+Every outbound GET: `is_safe_url()` (existing SSRF guard) → optional robots.txt
+(`RobotsGate`, per-host cached, 2 s, **fail-open** — it's the site's own homepage; off switch
+`CRAWLER_RESPECT_ROBOTS`) → streamed read capped at `CRAWLER_MAX_BYTES` (2 MB, sets
+`truncated`) with `CRAWLER_TIMEOUT_SECONDS` (5 s) and the identified `CRAWLER_USER_AGENT`.
+Never raises — failures are `FetchResult(ok=False, error=...)`.
+
+### `website_status` heuristic (→ `WebsiteStatus`)
+
+| verdict | rule |
+|---|---|
+| `none` | no HTTP response on https **or** http |
+| `broken` | reachable but status ≥ 400, or a JS-shell (<200 chars of text) |
+| `outdated` | reachable 2xx, but no `<meta viewport>` **and** not HTTPS |
+| `good` | HTTPS **and** viewport **and** (booking- or ordering-link or ≥ 15 links) |
+| `basic` | reachable 2xx, none of the above |
+
+Booking = `book|appointment|reserve|schedul|calendly|setmore|booksy`; ordering =
+`order|delivery|menu|foodpanda|grabfood|ubereats`. `mobile_friendly` is the viewport-tag
+presence (a heuristic, not true responsiveness). Every branch is pinned by a unit test; the
+guide's "hand-check 20 real sites" is a manual follow-up once real domains exist.
+
+### Deferred
+
+Playwright rendering of JS-only sites (flagged `js_rendered_suspected`, not performed —
+no browser). Multi-page crawl / "max 10 pages per business" (M4 hits the homepage only).
+`social_presence`, `digital_gaps`, `confidence` on `digital_audits` — M5 research + M6 audit
+own those. `campaign_leads` linking, so `audit-websites` currently audits the user's whole
+business pool rather than one campaign's.
