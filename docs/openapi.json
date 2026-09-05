@@ -1,0 +1,2884 @@
+{
+  "components": {
+    "schemas": {
+      "AgentName": {
+        "enum": [
+          "discovery",
+          "research",
+          "audit",
+          "opportunity",
+          "outreach"
+        ],
+        "title": "AgentName",
+        "type": "string"
+      },
+      "AgentRunRead": {
+        "properties": {
+          "agent": {
+            "$ref": "#/components/schemas/AgentName"
+          },
+          "businessCount": {
+            "title": "Businesscount",
+            "type": "integer"
+          },
+          "campaignId": {
+            "format": "uuid",
+            "title": "Campaignid",
+            "type": "string"
+          },
+          "costUsd": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Costusd",
+            "type": "string"
+          },
+          "endedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endedat"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "startedAt": {
+            "format": "date-time",
+            "title": "Startedat",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "campaignId",
+          "agent",
+          "status",
+          "businessCount",
+          "costUsd",
+          "startedAt",
+          "endedAt"
+        ],
+        "title": "AgentRunRead",
+        "type": "object"
+      },
+      "AuditResult": {
+        "description": "Response for `POST /campaigns/{id}/audit` \u2014 the M6 composition run.",
+        "properties": {
+          "audited": {
+            "title": "Audited",
+            "type": "integer"
+          },
+          "campaignId": {
+            "format": "uuid",
+            "title": "Campaignid",
+            "type": "string"
+          },
+          "durationMs": {
+            "title": "Durationms",
+            "type": "integer"
+          },
+          "evidenceClassified": {
+            "title": "Evidenceclassified",
+            "type": "integer"
+          },
+          "gapsFlagged": {
+            "title": "Gapsflagged",
+            "type": "integer"
+          },
+          "runId": {
+            "format": "uuid",
+            "title": "Runid",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RunStatus"
+          }
+        },
+        "required": [
+          "runId",
+          "campaignId",
+          "status",
+          "audited",
+          "gapsFlagged",
+          "evidenceClassified",
+          "durationMs"
+        ],
+        "title": "AuditResult",
+        "type": "object"
+      },
+      "Body_login_form_auth_token_post": {
+        "properties": {
+          "client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
+          },
+          "client_secret": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "format": "password",
+            "title": "Client Secret"
+          },
+          "grant_type": {
+            "anyOf": [
+              {
+                "pattern": "^password$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grant Type"
+          },
+          "password": {
+            "format": "password",
+            "title": "Password",
+            "type": "string"
+          },
+          "scope": {
+            "default": "",
+            "title": "Scope",
+            "type": "string"
+          },
+          "username": {
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "Body_login_form_auth_token_post",
+        "type": "object"
+      },
+      "CampaignCreate": {
+        "properties": {
+          "budgetMin": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Budgetmin",
+            "type": "integer"
+          },
+          "industries": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Industries",
+            "type": "array"
+          },
+          "location": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Location",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "service": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Service",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "service",
+          "location"
+        ],
+        "title": "CampaignCreate",
+        "type": "object"
+      },
+      "CampaignProgress": {
+        "properties": {
+          "campaignId": {
+            "format": "uuid",
+            "title": "Campaignid",
+            "type": "string"
+          },
+          "endedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endedat"
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/FunnelStage"
+            },
+            "title": "Stages",
+            "type": "array"
+          },
+          "startedAt": {
+            "format": "date-time",
+            "title": "Startedat",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CampaignStatus"
+          }
+        },
+        "required": [
+          "campaignId",
+          "status",
+          "stages",
+          "startedAt",
+          "endedAt"
+        ],
+        "title": "CampaignProgress",
+        "type": "object"
+      },
+      "CampaignRead": {
+        "properties": {
+          "budgetMin": {
+            "title": "Budgetmin",
+            "type": "integer"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "industries": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Industries",
+            "type": "array"
+          },
+          "leadCount": {
+            "default": 0,
+            "title": "Leadcount",
+            "type": "integer"
+          },
+          "location": {
+            "title": "Location",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "qualifiedCount": {
+            "default": 0,
+            "title": "Qualifiedcount",
+            "type": "integer"
+          },
+          "replies": {
+            "default": 0,
+            "title": "Replies",
+            "type": "integer"
+          },
+          "replyRate": {
+            "default": 0.0,
+            "title": "Replyrate",
+            "type": "number"
+          },
+          "service": {
+            "title": "Service",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CampaignStatus"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "service",
+          "location",
+          "status",
+          "budgetMin",
+          "createdAt"
+        ],
+        "title": "CampaignRead",
+        "type": "object"
+      },
+      "CampaignStatus": {
+        "enum": [
+          "draft",
+          "running",
+          "complete",
+          "failed"
+        ],
+        "title": "CampaignStatus",
+        "type": "string"
+      },
+      "DashboardFunnelStage": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "dropReason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dropreason"
+          },
+          "dropped": {
+            "title": "Dropped",
+            "type": "integer"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "count",
+          "dropped",
+          "dropReason"
+        ],
+        "title": "DashboardFunnelStage",
+        "type": "object"
+      },
+      "DashboardKpi": {
+        "properties": {
+          "deltaPct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deltapct"
+          },
+          "hint": {
+            "title": "Hint",
+            "type": "string"
+          },
+          "key": {
+            "enum": [
+              "scanned",
+              "analyzed",
+              "qualified",
+              "highPriority",
+              "replies"
+            ],
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "value",
+          "deltaPct",
+          "hint"
+        ],
+        "title": "DashboardKpi",
+        "type": "object"
+      },
+      "DashboardSnapshot": {
+        "properties": {
+          "funnel": {
+            "items": {
+              "$ref": "#/components/schemas/DashboardFunnelStage"
+            },
+            "title": "Funnel",
+            "type": "array"
+          },
+          "kpis": {
+            "items": {
+              "$ref": "#/components/schemas/DashboardKpi"
+            },
+            "title": "Kpis",
+            "type": "array"
+          },
+          "range": {
+            "enum": [
+              "week",
+              "all"
+            ],
+            "title": "Range",
+            "type": "string"
+          }
+        },
+        "required": [
+          "range",
+          "kpis",
+          "funnel"
+        ],
+        "title": "DashboardSnapshot",
+        "type": "object"
+      },
+      "DigitalAuditRead": {
+        "description": "The full per-business verdict. Mirrors `types.ts` `DigitalAudit`.",
+        "properties": {
+          "auditedAt": {
+            "format": "date-time",
+            "title": "Auditedat",
+            "type": "string"
+          },
+          "businessId": {
+            "format": "uuid",
+            "title": "Businessid",
+            "type": "string"
+          },
+          "confidence": {
+            "title": "Confidence",
+            "type": "number"
+          },
+          "digitalGaps": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Digitalgaps",
+            "type": "array"
+          },
+          "hasBooking": {
+            "title": "Hasbooking",
+            "type": "boolean"
+          },
+          "hasOrdering": {
+            "title": "Hasordering",
+            "type": "boolean"
+          },
+          "hasWebsite": {
+            "title": "Haswebsite",
+            "type": "boolean"
+          },
+          "mobileFriendly": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mobilefriendly"
+          },
+          "socialPresence": {
+            "$ref": "#/components/schemas/SocialPresence"
+          },
+          "websiteStatus": {
+            "$ref": "#/components/schemas/WebsiteStatus"
+          }
+        },
+        "required": [
+          "businessId",
+          "hasWebsite",
+          "websiteStatus",
+          "hasBooking",
+          "hasOrdering",
+          "mobileFriendly",
+          "socialPresence",
+          "digitalGaps",
+          "confidence",
+          "auditedAt"
+        ],
+        "title": "DigitalAuditRead",
+        "type": "object"
+      },
+      "DiscoveryResult": {
+        "description": "Outcome of one `POST /campaigns/{id}/discover`. In eager mode the request\nblocks until this is final, so `status` is already `succeeded`/`failed`.",
+        "properties": {
+          "campaignId": {
+            "format": "uuid",
+            "title": "Campaignid",
+            "type": "string"
+          },
+          "discovered": {
+            "title": "Discovered",
+            "type": "integer"
+          },
+          "duplicates": {
+            "title": "Duplicates",
+            "type": "integer"
+          },
+          "durationMs": {
+            "title": "Durationms",
+            "type": "integer"
+          },
+          "inserted": {
+            "title": "Inserted",
+            "type": "integer"
+          },
+          "runId": {
+            "format": "uuid",
+            "title": "Runid",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RunStatus"
+          }
+        },
+        "required": [
+          "runId",
+          "campaignId",
+          "status",
+          "discovered",
+          "inserted",
+          "duplicates",
+          "durationMs"
+        ],
+        "title": "DiscoveryResult",
+        "type": "object"
+      },
+      "EvidenceKind": {
+        "enum": [
+          "gap",
+          "strength"
+        ],
+        "title": "EvidenceKind",
+        "type": "string"
+      },
+      "EvidenceRead": {
+        "properties": {
+          "claim": {
+            "title": "Claim",
+            "type": "string"
+          },
+          "collectedAt": {
+            "format": "date-time",
+            "title": "Collectedat",
+            "type": "string"
+          },
+          "confidence": {
+            "title": "Confidence",
+            "type": "number"
+          },
+          "factor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScoreFactor"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvidenceKind"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "observedValue": {
+            "title": "Observedvalue",
+            "type": "string"
+          },
+          "sourceUrl": {
+            "title": "Sourceurl",
+            "type": "string"
+          },
+          "weight": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight"
+          }
+        },
+        "required": [
+          "id",
+          "claim",
+          "observedValue",
+          "sourceUrl",
+          "confidence",
+          "collectedAt"
+        ],
+        "title": "EvidenceRead",
+        "type": "object"
+      },
+      "FunnelStage": {
+        "description": "One stage of the cost funnel, derived from an `agent_runs` row. `kept`\nshrinks down the pipeline; `dropped`/`drop_reason` make the narrowing legible.",
+        "properties": {
+          "agent": {
+            "$ref": "#/components/schemas/AgentName"
+          },
+          "dropReason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dropreason"
+          },
+          "dropped": {
+            "title": "Dropped",
+            "type": "integer"
+          },
+          "input": {
+            "title": "Input",
+            "type": "integer"
+          },
+          "kept": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kept"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RunStatus"
+          }
+        },
+        "required": [
+          "agent",
+          "label",
+          "status",
+          "input",
+          "kept",
+          "dropped",
+          "dropReason"
+        ],
+        "title": "FunnelStage",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "LeadDetail": {
+        "properties": {
+          "address": {
+            "title": "Address",
+            "type": "string"
+          },
+          "audit": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DigitalAuditRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "breakdown": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Breakdown",
+            "type": "object"
+          },
+          "businessName": {
+            "title": "Businessname",
+            "type": "string"
+          },
+          "campaignId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Campaignid"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "confidence": {
+            "title": "Confidence",
+            "type": "number"
+          },
+          "domain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Domain"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceRead"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "evidenceCount": {
+            "title": "Evidencecount",
+            "type": "integer"
+          },
+          "hasWebsite": {
+            "title": "Haswebsite",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "location": {
+            "title": "Location",
+            "type": "string"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "reasoning": {
+            "title": "Reasoning",
+            "type": "string"
+          },
+          "recommendedService": {
+            "title": "Recommendedservice",
+            "type": "string"
+          },
+          "salesAngle": {
+            "title": "Salesangle",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "scoredAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scoredat"
+          },
+          "status": {
+            "$ref": "#/components/schemas/LeadStatus"
+          },
+          "tier": {
+            "$ref": "#/components/schemas/ScoreTier"
+          }
+        },
+        "required": [
+          "id",
+          "businessName",
+          "location",
+          "category",
+          "score",
+          "tier",
+          "status",
+          "evidenceCount",
+          "hasWebsite",
+          "address",
+          "phone",
+          "domain",
+          "campaignId",
+          "evidence",
+          "breakdown",
+          "audit",
+          "recommendedService",
+          "salesAngle",
+          "reasoning",
+          "confidence",
+          "scoredAt"
+        ],
+        "title": "LeadDetail",
+        "type": "object"
+      },
+      "LeadScoreRead": {
+        "description": "`GET /leads/{id}/score` \u2014 the deterministic score plus the LLM verdict.",
+        "properties": {
+          "breakdown": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Breakdown",
+            "type": "object"
+          },
+          "businessId": {
+            "format": "uuid",
+            "title": "Businessid",
+            "type": "string"
+          },
+          "modelVersion": {
+            "title": "Modelversion",
+            "type": "string"
+          },
+          "opportunity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpportunityRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "qualified": {
+            "title": "Qualified",
+            "type": "boolean"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "scoredAt": {
+            "format": "date-time",
+            "title": "Scoredat",
+            "type": "string"
+          },
+          "tier": {
+            "$ref": "#/components/schemas/ScoreTier"
+          }
+        },
+        "required": [
+          "businessId",
+          "score",
+          "tier",
+          "qualified",
+          "breakdown",
+          "modelVersion",
+          "scoredAt",
+          "opportunity"
+        ],
+        "title": "LeadScoreRead",
+        "type": "object"
+      },
+      "LeadStatus": {
+        "enum": [
+          "new",
+          "contacted",
+          "replied",
+          "meeting",
+          "proposal",
+          "won",
+          "lost"
+        ],
+        "title": "LeadStatus",
+        "type": "string"
+      },
+      "LeadStatusUpdate": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/LeadStatus"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "LeadStatusUpdate",
+        "type": "object"
+      },
+      "LeadSummary": {
+        "properties": {
+          "businessName": {
+            "title": "Businessname",
+            "type": "string"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "evidenceCount": {
+            "title": "Evidencecount",
+            "type": "integer"
+          },
+          "hasWebsite": {
+            "title": "Haswebsite",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "location": {
+            "title": "Location",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/components/schemas/LeadStatus"
+          },
+          "tier": {
+            "$ref": "#/components/schemas/ScoreTier"
+          }
+        },
+        "required": [
+          "id",
+          "businessName",
+          "location",
+          "category",
+          "score",
+          "tier",
+          "status",
+          "evidenceCount",
+          "hasWebsite"
+        ],
+        "title": "LeadSummary",
+        "type": "object"
+      },
+      "LoginRequest": {
+        "properties": {
+          "email": {
+            "format": "email",
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginRequest",
+        "type": "object"
+      },
+      "OpportunityRead": {
+        "properties": {
+          "confidence": {
+            "title": "Confidence",
+            "type": "number"
+          },
+          "reasoning": {
+            "title": "Reasoning",
+            "type": "string"
+          },
+          "recommendedService": {
+            "title": "Recommendedservice",
+            "type": "string"
+          },
+          "salesAngle": {
+            "title": "Salesangle",
+            "type": "string"
+          }
+        },
+        "required": [
+          "recommendedService",
+          "salesAngle",
+          "reasoning",
+          "confidence"
+        ],
+        "title": "OpportunityRead",
+        "type": "object"
+      },
+      "OpportunityResult": {
+        "description": "Response for `POST /campaigns/{id}/score`.",
+        "properties": {
+          "campaignId": {
+            "format": "uuid",
+            "title": "Campaignid",
+            "type": "string"
+          },
+          "durationMs": {
+            "title": "Durationms",
+            "type": "integer"
+          },
+          "llmCalls": {
+            "title": "Llmcalls",
+            "type": "integer"
+          },
+          "llmFailures": {
+            "title": "Llmfailures",
+            "type": "integer"
+          },
+          "qualified": {
+            "title": "Qualified",
+            "type": "integer"
+          },
+          "runId": {
+            "format": "uuid",
+            "title": "Runid",
+            "type": "string"
+          },
+          "scored": {
+            "title": "Scored",
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RunStatus"
+          }
+        },
+        "required": [
+          "runId",
+          "campaignId",
+          "status",
+          "scored",
+          "qualified",
+          "llmCalls",
+          "llmFailures",
+          "durationMs"
+        ],
+        "title": "OpportunityResult",
+        "type": "object"
+      },
+      "OutreachChannel": {
+        "enum": [
+          "email",
+          "facebook_dm"
+        ],
+        "title": "OutreachChannel",
+        "type": "string"
+      },
+      "OutreachRead": {
+        "properties": {
+          "approved": {
+            "title": "Approved",
+            "type": "boolean"
+          },
+          "businessId": {
+            "format": "uuid",
+            "title": "Businessid",
+            "type": "string"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/OutreachChannel"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OutreachStatus"
+          },
+          "subject": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject"
+          }
+        },
+        "required": [
+          "id",
+          "businessId",
+          "channel",
+          "status",
+          "subject",
+          "approved",
+          "createdAt"
+        ],
+        "title": "OutreachRead",
+        "type": "object"
+      },
+      "OutreachStatus": {
+        "enum": [
+          "draft",
+          "sent",
+          "replied",
+          "bounced"
+        ],
+        "title": "OutreachStatus",
+        "type": "string"
+      },
+      "ProfileRead": {
+        "description": "The `types.ts` `UserProfile` shape \u2014 identity email + profile fields.",
+        "properties": {
+          "email": {
+            "format": "email",
+            "title": "Email",
+            "type": "string"
+          },
+          "icpNotes": {
+            "title": "Icpnotes",
+            "type": "string"
+          },
+          "priceRangeMax": {
+            "title": "Pricerangemax",
+            "type": "integer"
+          },
+          "priceRangeMin": {
+            "title": "Pricerangemin",
+            "type": "integer"
+          },
+          "services": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Services",
+            "type": "array"
+          },
+          "targetIndustries": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Targetindustries",
+            "type": "array"
+          },
+          "targetLocations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Targetlocations",
+            "type": "array"
+          }
+        },
+        "required": [
+          "email",
+          "services",
+          "targetIndustries",
+          "targetLocations",
+          "priceRangeMin",
+          "priceRangeMax",
+          "icpNotes"
+        ],
+        "title": "ProfileRead",
+        "type": "object"
+      },
+      "ProfileWrite": {
+        "properties": {
+          "icpNotes": {
+            "default": "",
+            "title": "Icpnotes",
+            "type": "string"
+          },
+          "priceRangeMax": {
+            "default": 0,
+            "title": "Pricerangemax",
+            "type": "integer"
+          },
+          "priceRangeMin": {
+            "default": 0,
+            "title": "Pricerangemin",
+            "type": "integer"
+          },
+          "services": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Services",
+            "type": "array"
+          },
+          "targetIndustries": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Targetindustries",
+            "type": "array"
+          },
+          "targetLocations": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Targetlocations",
+            "type": "array"
+          }
+        },
+        "title": "ProfileWrite",
+        "type": "object"
+      },
+      "RegisterRequest": {
+        "properties": {
+          "email": {
+            "format": "email",
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "minLength": 8,
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "RegisterRequest",
+        "type": "object"
+      },
+      "ResearchResult": {
+        "properties": {
+          "businessesResearched": {
+            "title": "Businessesresearched",
+            "type": "integer"
+          },
+          "campaignId": {
+            "format": "uuid",
+            "title": "Campaignid",
+            "type": "string"
+          },
+          "durationMs": {
+            "title": "Durationms",
+            "type": "integer"
+          },
+          "evidenceWritten": {
+            "title": "Evidencewritten",
+            "type": "integer"
+          },
+          "pagesFetched": {
+            "title": "Pagesfetched",
+            "type": "integer"
+          },
+          "runId": {
+            "format": "uuid",
+            "title": "Runid",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RunStatus"
+          }
+        },
+        "required": [
+          "runId",
+          "campaignId",
+          "status",
+          "businessesResearched",
+          "evidenceWritten",
+          "pagesFetched",
+          "durationMs"
+        ],
+        "title": "ResearchResult",
+        "type": "object"
+      },
+      "RunStatus": {
+        "enum": [
+          "queued",
+          "running",
+          "succeeded",
+          "failed"
+        ],
+        "title": "RunStatus",
+        "type": "string"
+      },
+      "ScoreFactor": {
+        "enum": [
+          "no_website",
+          "broken_website",
+          "outdated_website",
+          "no_booking",
+          "no_ordering",
+          "active_social",
+          "high_review_count",
+          "contactable",
+          "industry_match",
+          "location_match"
+        ],
+        "title": "ScoreFactor",
+        "type": "string"
+      },
+      "ScoreTier": {
+        "enum": [
+          "high",
+          "mid",
+          "low"
+        ],
+        "title": "ScoreTier",
+        "type": "string"
+      },
+      "SocialPresence": {
+        "enum": [
+          "none",
+          "inactive",
+          "active",
+          "very_active"
+        ],
+        "title": "SocialPresence",
+        "type": "string"
+      },
+      "TokenResponse": {
+        "properties": {
+          "accessToken": {
+            "title": "Accesstoken",
+            "type": "string"
+          },
+          "expiresIn": {
+            "title": "Expiresin",
+            "type": "integer"
+          },
+          "tokenType": {
+            "default": "bearer",
+            "title": "Tokentype",
+            "type": "string"
+          }
+        },
+        "required": [
+          "accessToken",
+          "expiresIn"
+        ],
+        "title": "TokenResponse",
+        "type": "object"
+      },
+      "UserRead": {
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "email": {
+            "format": "email",
+            "title": "Email",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "isAdmin": {
+            "title": "Isadmin",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "isAdmin",
+          "createdAt"
+        ],
+        "title": "UserRead",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "WebsiteAuditResult": {
+        "properties": {
+          "audited": {
+            "title": "Audited",
+            "type": "integer"
+          },
+          "campaignId": {
+            "format": "uuid",
+            "title": "Campaignid",
+            "type": "string"
+          },
+          "durationMs": {
+            "title": "Durationms",
+            "type": "integer"
+          },
+          "noWebsite": {
+            "title": "Nowebsite",
+            "type": "integer"
+          },
+          "reachable": {
+            "title": "Reachable",
+            "type": "integer"
+          },
+          "runId": {
+            "format": "uuid",
+            "title": "Runid",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RunStatus"
+          },
+          "withDomain": {
+            "title": "Withdomain",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "runId",
+          "campaignId",
+          "status",
+          "audited",
+          "withDomain",
+          "reachable",
+          "noWebsite",
+          "durationMs"
+        ],
+        "title": "WebsiteAuditResult",
+        "type": "object"
+      },
+      "WebsiteStatus": {
+        "enum": [
+          "none",
+          "broken",
+          "outdated",
+          "basic",
+          "good"
+        ],
+        "title": "WebsiteStatus",
+        "type": "string"
+      }
+    },
+    "securitySchemes": {
+      "OAuth2PasswordBearer": {
+        "flows": {
+          "password": {
+            "scopes": {},
+            "tokenUrl": "auth/token"
+          }
+        },
+        "type": "oauth2"
+      }
+    }
+  },
+  "info": {
+    "title": "TUKLAS API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/agent-runs": {
+      "get": {
+        "operationId": "list_agent_runs_agent_runs_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AgentRunRead"
+                  },
+                  "title": "Response List Agent Runs Agent Runs Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "List Agent Runs",
+        "tags": [
+          "agent-runs"
+        ]
+      }
+    },
+    "/agent-runs/{run_id}": {
+      "get": {
+        "operationId": "get_agent_run_agent_runs__run_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentRunRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get Agent Run",
+        "tags": [
+          "agent-runs"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "login_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Login",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "operationId": "register_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Register",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/token": {
+      "post": {
+        "description": "OAuth2 password flow \u2014 powers the /docs Authorize button. `username` is the\nemail.",
+        "operationId": "login_form_auth_token_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_login_form_auth_token_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Login Form",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/campaigns": {
+      "get": {
+        "operationId": "list_campaigns_campaigns_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CampaignRead"
+                  },
+                  "title": "Response List Campaigns Campaigns Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "List Campaigns",
+        "tags": [
+          "campaigns"
+        ]
+      },
+      "post": {
+        "operationId": "create_campaign_campaigns_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CampaignCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Create Campaign",
+        "tags": [
+          "campaigns"
+        ]
+      }
+    },
+    "/campaigns/{campaign_id}": {
+      "get": {
+        "operationId": "get_campaign_campaigns__campaign_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "campaign_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Campaign Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get Campaign",
+        "tags": [
+          "campaigns"
+        ]
+      }
+    },
+    "/campaigns/{campaign_id}/audit": {
+      "post": {
+        "operationId": "audit_campaigns__campaign_id__audit_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "campaign_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Campaign Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Audit",
+        "tags": [
+          "audit"
+        ]
+      }
+    },
+    "/campaigns/{campaign_id}/audit-websites": {
+      "post": {
+        "operationId": "audit_websites_campaigns__campaign_id__audit_websites_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "campaign_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Campaign Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebsiteAuditResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Audit Websites",
+        "tags": [
+          "audit"
+        ]
+      }
+    },
+    "/campaigns/{campaign_id}/discover": {
+      "post": {
+        "operationId": "discover_campaigns__campaign_id__discover_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "campaign_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Campaign Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscoveryResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Discover",
+        "tags": [
+          "campaigns"
+        ]
+      }
+    },
+    "/campaigns/{campaign_id}/progress": {
+      "get": {
+        "operationId": "campaign_progress_campaigns__campaign_id__progress_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "campaign_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Campaign Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignProgress"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Campaign Progress",
+        "tags": [
+          "campaigns"
+        ]
+      }
+    },
+    "/campaigns/{campaign_id}/research": {
+      "post": {
+        "operationId": "research_campaigns__campaign_id__research_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "campaign_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Campaign Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResearchResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Research",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/campaigns/{campaign_id}/run": {
+      "post": {
+        "operationId": "run_campaign_campaigns__campaign_id__run_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "campaign_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Campaign Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignProgress"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Run Campaign",
+        "tags": [
+          "campaigns"
+        ]
+      }
+    },
+    "/campaigns/{campaign_id}/score": {
+      "post": {
+        "operationId": "score_campaigns__campaign_id__score_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "campaign_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Campaign Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpportunityResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Score",
+        "tags": [
+          "opportunity"
+        ]
+      }
+    },
+    "/dashboard": {
+      "get": {
+        "operationId": "dashboard_dashboard_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "range",
+            "required": false,
+            "schema": {
+              "default": "all",
+              "enum": [
+                "week",
+                "all"
+              ],
+              "title": "Range",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardSnapshot"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Dashboard",
+        "tags": [
+          "dashboard"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "description": "Liveness \u2014 no DB. Mounted off the api_prefix on purpose.",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Health Health Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/health/db": {
+      "get": {
+        "operationId": "health_db_health_db_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Health Db Health Db Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health Db",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/leads": {
+      "get": {
+        "operationId": "list_leads_leads_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "scoreMin",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 100,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Scoremin"
+            }
+          },
+          {
+            "in": "query",
+            "name": "scoreMax",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 100,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Scoremax"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/LeadStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "industry",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Industry"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hasWebsite",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Haswebsite"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LeadSummary"
+                  },
+                  "title": "Response List Leads Leads Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "List Leads",
+        "tags": [
+          "leads"
+        ]
+      }
+    },
+    "/leads/{business_id}": {
+      "get": {
+        "operationId": "get_lead_leads__business_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get Lead",
+        "tags": [
+          "leads"
+        ]
+      }
+    },
+    "/leads/{business_id}/audit": {
+      "get": {
+        "operationId": "get_lead_audit_leads__business_id__audit_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DigitalAuditRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get Lead Audit",
+        "tags": [
+          "leads"
+        ]
+      }
+    },
+    "/leads/{business_id}/evidence": {
+      "get": {
+        "operationId": "get_lead_evidence_leads__business_id__evidence_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EvidenceRead"
+                  },
+                  "title": "Response Get Lead Evidence Leads  Business Id  Evidence Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get Lead Evidence",
+        "tags": [
+          "leads"
+        ]
+      }
+    },
+    "/leads/{business_id}/score": {
+      "get": {
+        "operationId": "get_lead_score_leads__business_id__score_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadScoreRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get Lead Score",
+        "tags": [
+          "leads"
+        ]
+      }
+    },
+    "/leads/{business_id}/status": {
+      "patch": {
+        "operationId": "set_lead_status_leads__business_id__status_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeadStatusUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Set Lead Status",
+        "tags": [
+          "leads"
+        ]
+      }
+    },
+    "/me": {
+      "get": {
+        "operationId": "me_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Me",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/me/profile": {
+      "get": {
+        "operationId": "get_profile_me_profile_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get Profile",
+        "tags": [
+          "profile"
+        ]
+      },
+      "put": {
+        "operationId": "put_profile_me_profile_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Put Profile",
+        "tags": [
+          "profile"
+        ]
+      }
+    },
+    "/outreach": {
+      "get": {
+        "operationId": "list_outreach_outreach_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OutreachRead"
+                  },
+                  "title": "Response List Outreach Outreach Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "List Outreach",
+        "tags": [
+          "outreach"
+        ]
+      }
+    },
+    "/outreach/{message_id}": {
+      "get": {
+        "operationId": "get_outreach_outreach__message_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "message_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Message Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutreachRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get Outreach",
+        "tags": [
+          "outreach"
+        ]
+      }
+    }
+  }
+}
