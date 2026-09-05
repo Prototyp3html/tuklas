@@ -15,11 +15,38 @@ from backend.agents.base import agent_run
 from backend.agents.discovery.dedupe import dedupe_batch, find_duplicate
 from backend.agents.discovery.normalize import normalize
 from backend.config import settings
-from backend.models import Business, BusinessSource, Campaign
+from backend.models import Business, BusinessSource, Campaign, CampaignLead
 from backend.models.enums import AgentName
 from backend.providers.business_data import BusinessDataSource, get_business_source
 from backend.schemas.business import NormalizedBusiness
 from backend.schemas.campaign import DiscoveryResult
+
+
+async def ensure_campaign_leads(session: AsyncSession, campaign: Campaign) -> None:
+    """Link every business in the user's pool to this campaign as a `campaign_leads`
+    row (`status='new'`). Existing rows — and any status a user has since set — are
+    left alone. This is what gives `GET /leads` a status and a campaign to show."""
+    business_ids = set(
+        (await session.execute(select(Business.id))).scalars().all()
+    )
+    linked = set(
+        (
+            await session.execute(
+                select(CampaignLead.business_id).where(
+                    CampaignLead.campaign_id == campaign.id
+                )
+            )
+        ).scalars().all()
+    )
+    for business_id in business_ids - linked:
+        session.add(
+            CampaignLead(
+                user_id=campaign.user_id,
+                campaign_id=campaign.id,
+                business_id=business_id,
+            )
+        )
+    await session.flush()
 
 
 async def run_discovery(
@@ -80,6 +107,8 @@ async def run_discovery(
 
         run.business_count = len(new_pairs)
         discovered, inserted = len(raw), len(new_pairs)
+
+    await ensure_campaign_leads(session, campaign)
 
     return DiscoveryResult(
         run_id=run.id,

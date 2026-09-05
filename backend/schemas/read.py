@@ -30,10 +30,17 @@ class CampaignRead(CamelModel):
     id: UUID
     name: str
     service: str
+    industries: list[str] = []
     location: str
     status: CampaignStatus
     budget_min: int
     created_at: datetime
+    # Rollups (types.ts `Campaign`). Computed by the campaign routes; default 0
+    # so a bare ORM object (e.g. the create response) still validates.
+    lead_count: int = 0
+    qualified_count: int = 0
+    replies: int = 0  # M9 (outreach)
+    reply_rate: float = 0.0
 
 
 class OutreachRead(CamelModel):
