@@ -678,3 +678,59 @@ valid `lead_scores`. M3–M6 never touch `run.status`; the full suite is the gua
 Blending the LLM score into `lead_scores.score`; `campaign_leads` population; the Anthropic
 provider / tier routing / `agent_runs.cost_usd`; a real review-count source; the dashboard
 and lead list/detail API shapes (M8); any `frontend/**` change (OpenAPI regen is M8).
+
+## 2026-09-06 — Backend Milestone 8 (API layer for the dashboard + lead UI)
+
+M8 is split: **this chunk builds every backend endpoint the M8 screens need + a committed
+OpenAPI schema**; the React wiring (`lib/api.ts`, browser auth, swapping `mock-data.ts`) is
+the next chunk. `frontend/**` is untouched here. No schema change — `campaign_leads`,
+`lead_scores`, `lead_opportunities`, `digital_audits` all exist since M2 `0002`.
+
+### Endpoints (all satisfy `frontend/lib/types.ts`)
+
+- `GET /leads` → `list[LeadSummary]` with `scoreMin` / `scoreMax` / `status` / `industry` /
+  `hasWebsite` filters (camelCase query aliases, to match the camelCase wire), default sort
+  `score DESC`. Built from **correlated scalar subqueries** on one `Business` select — one
+  round trip, no N+1.
+- `GET /leads/{id}` → `LeadDetail`: the summary plus `address`/`phone`/`domain`/`campaignId`,
+  the evidence ledger, the `breakdown`, the `DigitalAudit`, and the four LLM opportunity
+  fields — composed from four tables. The `/evidence`, `/audit`, `/score` sub-resources stay
+  (piecewise access + the M5–M7 tests).
+- `PATCH /leads/{id}/status` → updates the business's `campaign_leads` row(s); 404 if
+  RLS-hidden or not linked to a campaign yet.
+- `GET /campaigns` / `GET /campaigns/{id}` → `CampaignRead` gains `industries` +
+  `leadCount` / `qualifiedCount` (`replies` / `replyRate` are 0 until M9).
+- `GET /campaigns/{id}/progress` → `CampaignProgress`: a four-stage `FunnelStage` list
+  derived from that campaign's `agent_runs` (the two `agent='audit'` runs collapse to the
+  most recent). `kept` = total businesses at discovery, `business_count` at research/audit,
+  `qualified_count` at opportunity — so the funnel narrows only at qualification (the
+  current pipeline doesn't discard between stages; documented). `status` is derived from the
+  run statuses, not the stale `campaigns.status` column.
+- `POST /campaigns/{id}/run` → runs discovery → research → website-audit → audit →
+  opportunity in one eager request, then returns the fresh `CampaignProgress`. Wires the
+  fetch/search/LLM deps (overridable). The individual stage endpoints stay.
+- `GET /dashboard?range=all|week` → `DashboardSnapshot`: five KPI cards + a four-band
+  funnel. `week` counts the last 7 days and reports `deltaPct` vs the prior 7; `all` reports
+  no deltas.
+
+### `campaign_leads` population
+
+`run_discovery` now calls `ensure_campaign_leads(session, campaign)` — one `campaign_leads`
+row per business in the user's pool, `status='new'`, **existing status preserved** on
+re-run. This is what gives `GET /leads` a status and a campaign to show. Discovery is the
+natural place (it's the "these are leads now" moment); it's an additive upsert loop, M3's
+tests only assert `businesses`/`agent_runs` counts.
+
+### Committed OpenAPI schema
+
+`scripts/export_openapi.py` writes `docs/openapi.json` (sorted, indented);
+`tests/test_openapi.py` fails CI on drift. This is the artefact the frontend chunk
+regenerates types from — the hand-written half of `types.ts` gets deleted then.
+
+### Not in this chunk
+
+Any `frontend/**` change; `openapi-typescript` regen / `lib/api.ts` / browser auth;
+activity feed (`lead_activity` still unpopulated); real `replies`/`replyRate` (M9);
+per-campaign lead *sets* (whole-pool stays); `agent_runs.cost_usd` (M10). The
+`opportunity_llm_threshold` config field is still not wired to the `LLM_THRESHOLD` constant
+— a standalone follow-up.
