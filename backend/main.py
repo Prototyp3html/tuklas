@@ -11,6 +11,7 @@ from backend.api import (
     audit,
     auth,
     campaigns,
+    dashboard,
     leads,
     opportunity,
     outreach,
@@ -47,6 +48,7 @@ for _module in (
     audit,
     research,
     opportunity,
+    dashboard,
 ):
     app.include_router(_module.router, prefix=settings.api_prefix)
 
