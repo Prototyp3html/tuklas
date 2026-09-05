@@ -29,11 +29,14 @@ from backend.schemas.audit import WebsiteReport
 
 Fetch = Callable[[str], Awaitable[FetchResult]]
 
+# \b on the English words: bare "book" matched *facebook*, so any business with a
+# Facebook link read as having online booking (and M6 then dropped its
+# `no_booking` gap). Same guard on "order" (reorder/border) and "menu".
 _BOOKING_RE = re.compile(
-    r"book|appointment|reserve|schedul|calendly|setmore|booksy", re.I
+    r"\bbook|\bappointment|\breserve|\bschedul|calendly|setmore", re.I
 )
 _ORDERING_RE = re.compile(
-    r"order|delivery|menu|foodpanda|grabfood|ubereats", re.I
+    r"\border|\bdelivery|\bmenu|foodpanda|grabfood|ubereats", re.I
 )
 _JS_TEXT_FLOOR = 500  # guide's Playwright-escalation trigger (flagged, not performed)
 _EMPTY_TEXT_FLOOR = 200
