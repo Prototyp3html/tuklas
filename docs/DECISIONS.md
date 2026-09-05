@@ -612,3 +612,69 @@ match anywhere. M4's 16 website-audit tests stayed green.
 activity-recency social signal; `campaign_leads` linking (M6 covers the user's whole
 business pool, like M3–M5); re-running M4/M5 from the M6 endpoint (three separate stages;
 M6 upserts a thin `digital_audits` row if M4 hasn't run, and degrades rather than crashes).
+
+## 2026-09-06 — Backend Milestone 7 (Opportunity scoring)
+
+`POST /campaigns/{id}/score` ranks the campaign's businesses in two layers; `GET
+/leads/{id}/score` reads the verdict (score + tier + `qualified` + breakdown + nested
+opportunity). **First stage to call an LLM.** No schema change (`lead_scores` /
+`lead_opportunities` columns exist since M2 `0002`).
+
+### Layer 1 is the source of truth
+
+`score_lead` (`backend/agents/opportunity/score.py`) is a pure function: audit verdict +
+evidence claims + campaign fit → a `{ScoreFactor: points}` breakdown, score = capped sum.
+Written to `lead_scores` with the full `breakdown` (JSONB) and `model_version` (`m7-weights-1`).
+`sum(breakdown) == score` unless it exceeded 100 — the total stays auditable independently
+of the evidence rows (`types.ts` `LeadDetail.breakdown`). Weights come from the BUILD_GUIDE
+table (`weights.py`), overridable via `run_opportunity(..., weights=...)`.
+
+- `no_booking` / `no_ordering` fire only when the campaign's `service` string actually
+  mentions booking / ordering (keyword sets) — the guide's "only if service includes booking".
+- `high_review_count` stays in the weight set for stability but is **inert**: no
+  review-count signal is collected yet (M5 gets FB followers/likes, not review counts).
+- `active_social` is a *positive* weight — an engaged audience with a weak/absent website is
+  a real opportunity.
+
+### Layer 2 — gated, grounded, non-fatal
+
+Runs only when `score >= opportunity_llm_threshold` (50) **and** the business has evidence
+rows to cite. Calls the injected `LLMProvider.complete_structured(prompt, OpportunityAnalysis)`.
+**Grounding rule:** every `evidence_id` the model returns must be a real `business_evidence`
+row for that business, and the list must be non-empty; otherwise retry once, then write an
+`agent_errors` row (`error_type='ungrounded'` / `'llm_error'`) and skip. A validated result
+becomes a `lead_opportunities` row (`recommended_service` / `sales_angle` / `reasoning` /
+`confidence` only). **An ungrounded conclusion is never persisted.**
+
+The LLM's own `score` field is collected but **not stored** — there is no column, and
+blending it would break `sum(breakdown) == score`. The deterministic score stays
+authoritative; the LLM contributes only the four advisory text/confidence fields (exactly
+the split `types.ts` `LeadDetail` draws: "the only fields produced by a model").
+
+Deterministic scores always commit. The run is marked `failed` only when the LLM layer was
+attempted and failed on **every** business (total outage) — via the `agent_run` change
+below. Partial LLM failures → run `succeeded`, `llm_failures` in the response payload.
+
+### `LLMProvider` seam
+
+`get_llm_provider()` (`backend/providers/llm/__init__.py`) — `FixtureLLM` default (the only
+one tests/CI touch), `OllamaProvider` when `LLM_PROVIDER=ollama`. `FixtureLLM` scrapes the
+evidence ids out of the prompt and cites exactly those, so grounding tests exercise the real
+code path offline (same idea as `FixtureSearch` keying off the query). `OllamaProvider`
+POSTs `/api/chat` with `format=<schema.model_json_schema()>` for structured output, one
+retry then raise — **no API key**, needs `ollama serve` + `OLLAMA_MODEL` pulled. `tier` is
+accepted and ignored in Phase 1 (single local model); routing lands with the Anthropic
+provider (still a Phase-2 stub). Runner takes a *required* injected `llm`, so a test can
+never reach a real model.
+
+### `agent_run` promotes only `RUNNING` → `SUCCEEDED`
+
+`backend/agents/base.py`: the clean-exit branch now promotes only if the body left
+`run.status` alone, so `run_opportunity` can self-mark `FAILED` while still committing its
+valid `lead_scores`. M3–M6 never touch `run.status`; the full suite is the guard.
+
+### Not in this milestone
+
+Blending the LLM score into `lead_scores.score`; `campaign_leads` population; the Anthropic
+provider / tier routing / `agent_runs.cost_usd`; a real review-count source; the dashboard
+and lead list/detail API shapes (M8); any `frontend/**` change (OpenAPI regen is M8).
