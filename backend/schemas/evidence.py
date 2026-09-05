@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from backend.models.enums import RunStatus
+from backend.models.enums import EvidenceKind, RunStatus, ScoreFactor
 from backend.schemas.base import CamelModel
 
 
@@ -16,6 +16,10 @@ class EvidenceRead(CamelModel):
     source_url: str
     confidence: float
     collected_at: datetime
+    # M6 fills `kind`; `weight`/`factor` stay null until M7 scoring.
+    kind: EvidenceKind | None = None
+    weight: int | None = None
+    factor: ScoreFactor | None = None
 
 
 class ResearchResult(CamelModel):

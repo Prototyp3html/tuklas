@@ -1,4 +1,9 @@
-"""Audit endpoints. M4: run the deterministic website analyzer over a campaign.
+"""Audit endpoints.
+
+- M4: `POST /campaigns/{id}/audit-websites` runs the deterministic website
+  analyzer over a campaign's businesses.
+- M6: `POST /campaigns/{id}/audit` composes the website fields + M5 evidence into
+  the full `digital_audits` verdict (no network — pure DB).
 
 Isolation is Postgres RLS, not Python — a missing/foreign campaign reads back as
 `None` -> 404.
@@ -12,11 +17,11 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from backend.agents.audit import http_fetcher, run_website_audit
+from backend.agents.audit import http_fetcher, run_audit, run_website_audit
 from backend.agents.audit.website import Fetch
 from backend.api.deps import CurrentUser, DbSession
 from backend.models import Campaign
-from backend.schemas.audit import WebsiteAuditResult
+from backend.schemas.audit import AuditResult, WebsiteAuditResult
 
 router = APIRouter(tags=["audit"])
 
@@ -42,5 +47,19 @@ async def audit_websites(
     if campaign is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Not found")
     result = await run_website_audit(db, campaign, fetch=fetch)
+    await db.commit()
+    return result
+
+
+@router.post("/campaigns/{campaign_id}/audit", response_model=AuditResult)
+async def audit(
+    campaign_id: UUID, user: CurrentUser, db: DbSession
+) -> AuditResult:
+    # Composes M4's website check + M5's evidence into the verdict. Expects both
+    # to have run; a business with no `digital_audits` row yet gets a thin one.
+    campaign = await db.get(Campaign, campaign_id)
+    if campaign is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Not found")
+    result = await run_audit(db, campaign)
     await db.commit()
     return result

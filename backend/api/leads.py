@@ -13,7 +13,8 @@ from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 
 from backend.api.deps import CurrentUser, DbSession
-from backend.models import Business, BusinessEvidence
+from backend.models import Business, BusinessEvidence, DigitalAudit
+from backend.schemas.audit import DigitalAuditRead
 from backend.schemas.evidence import EvidenceRead
 from backend.schemas.read import BusinessRead
 
@@ -46,3 +47,15 @@ async def get_lead_evidence(
         .order_by(BusinessEvidence.collected_at, BusinessEvidence.claim)
     )
     return list(rows.scalars().all())
+
+
+@router.get("/leads/{business_id}/audit", response_model=DigitalAuditRead)
+async def get_lead_audit(
+    business_id: UUID, user: CurrentUser, db: DbSession
+) -> DigitalAudit:
+    if await db.get(Business, business_id) is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Not found")
+    audit = await db.get(DigitalAudit, business_id)
+    if audit is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Not audited yet")
+    return audit
