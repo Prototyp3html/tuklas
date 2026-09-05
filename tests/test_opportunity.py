@@ -192,7 +192,7 @@ async def _chain(client, auth, user):
 
 async def _bella_id(client, auth, user):
     leads = (await client.get("/leads", headers=auth(user))).json()
-    return next(b["id"] for b in leads if b["name"] == "Bella Rosa Salon")
+    return next(b["id"] for b in leads if b["businessName"] == "Bella Rosa Salon")
 
 
 async def test_score_writes_lead_scores_and_grounded_opportunities(

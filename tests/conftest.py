@@ -198,3 +198,53 @@ async def db_as() -> AsyncIterator[Callable[[User], Awaitable[AsyncSession]]]:
     for session in opened:
         await session.close()
     await engine.dispose()
+
+
+# --------------------------------------------------------------------------- #
+# Milestone 8 — pipeline provider stubs                                        #
+# --------------------------------------------------------------------------- #
+
+_BELLA_HTML = """
+<html><head><title>Bella Rosa Salon</title></head><body>
+  <p>Call 0917 214 5566</p>
+  <p><a href="mailto:hello@bellarosa.example">hello@bellarosa.example</a></p>
+  <a href="https://www.facebook.com/bellarosasalon">Our Facebook</a>
+  <footer>&copy; 2019 Bella Rosa Salon</footer>
+</body></html>
+"""
+_FB_HTML = """
+<html><head><meta property="og:title" content="Bella Rosa Salon"></head>
+<body><div>340 followers</div><div>318 people like this</div></body></html>
+"""
+
+
+async def fake_fetch(url: str):
+    from backend.core.http import FetchResult
+
+    if "bellarosasalon.com" in url:
+        return FetchResult(
+            requested_url=url, final_url=url, status_code=200, ok=True,
+            is_https=url.startswith("https"), body=_BELLA_HTML,
+        )
+    if "facebook.com" in url:
+        return FetchResult(
+            requested_url=url, final_url=url, status_code=200, ok=True,
+            is_https=url.startswith("https"), body=_FB_HTML,
+        )
+    return FetchResult(requested_url=url, error="ConnectError")
+
+
+@pytest.fixture
+def pipeline_overrides():
+    """Stub the fetch + LLM providers so `POST /campaigns/{id}/run` is offline and
+    deterministic. Search stays on the fixture provider (its default)."""
+    from backend.api.audit import get_fetcher
+    from backend.api.opportunity import get_llm
+    from backend.main import app
+    from backend.providers.llm import FixtureLLM
+
+    app.dependency_overrides[get_fetcher] = lambda: fake_fetch
+    app.dependency_overrides[get_llm] = lambda: FixtureLLM()
+    yield
+    app.dependency_overrides.pop(get_fetcher, None)
+    app.dependency_overrides.pop(get_llm, None)

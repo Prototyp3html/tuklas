@@ -165,7 +165,7 @@ async def _discover(client, auth, user):
 
 async def _bella_id(client, auth, user):
     leads = (await client.get("/leads", headers=auth(user))).json()
-    return next(b["id"] for b in leads if b["name"] == "Bella Rosa Salon")
+    return next(b["id"] for b in leads if b["businessName"] == "Bella Rosa Salon")
 
 
 async def test_research_writes_cited_evidence(
