@@ -550,3 +550,65 @@ past the public HTML.
 PH phone extraction (the shared `PHONE_RE`) is loose — the live smoke pulled `9912483` from
 "991-2483" (dropped the `(062)` area code). Tightening it is a follow-up; it feeds M7
 scoring, not a hard gate.
+
+## 2026-09-06 — Backend Milestone 6 (Audit task)
+
+`POST /campaigns/{id}/audit` is the finalizer: it reads the M4 website fields and the M5
+`business_evidence` rows for each business and composes the rest of the `digital_audits`
+verdict — `social_presence`, `digital_gaps`, `confidence` — then stamps a `kind` on every
+evidence row. `GET /leads/{id}/audit` reads the verdict back (mirrors `types.ts`
+`DigitalAudit`). Deterministic, **no LLM** (that starts at M7), **no schema change**, **no
+network** — pure DB composition. Idempotent by construction: every field is a function of
+current DB state, so a re-run is a no-op (no deletes, no accumulation).
+
+### `evidence_ids` → `EvidenceRow.kind`
+
+BUILD_GUIDE §"MILESTONE 6" sketches a `DigitalAudit` model with `evidence_ids: list[UUID]`.
+The real contract — `frontend/lib/types.ts` `DigitalAudit` and the `digital_audits` table —
+has no such field. The linkage the codebase actually carries is `EvidenceRow.kind`
+(non-nullable in `types.ts`, left NULL since M5). So M6 realises "evidence linkage" by
+classifying every research row's `kind` (`gap` | `strength`), not by storing an id list.
+`classify_evidence_kind` is total with a `strength` fallback, so a claim key added by a later
+milestone can't fail the run.
+
+### `digital_gaps` slugs align with `ScoreFactor`
+
+`derive_digital_gaps` emits a stable, ordered list. The overlapping slugs are byte-identical
+to `ScoreFactor` values — `no_website`, `broken_website`, `outdated_website`, `no_booking`,
+`no_ordering` — so M7 maps them straight onto weights. The M6-only slugs (`basic_website`,
+`not_mobile_friendly`, `weak_social_presence`, `no_public_contact`) carry no scoring factor
+and that's fine.
+
+### `social_presence` is an audience-size proxy
+
+No post-recency / "recent activity" signal is collected anywhere yet (that needs the
+Facebook page's post timestamps — a research follow-up). `classify_social_presence` buckets
+on presence of a social link, then the largest follower/like count: `none` → `inactive`
+(link, <300) → `active` (≥300) → `very_active` (≥1500).
+
+### `confidence` formula
+
+`0.35` floor (name/category/domain-or-not always come from discovery) `+ 0.30` if the
+website read was decisive (reachable and not `none`) or `+ 0.15` if "no site", `+ min(0.30,
+0.10 × evidence_rows)`. A bare discovery record floors around `0.50`; a reachable site with
+3+ corroborating rows lands `≥ 0.9`.
+
+### `agent='audit'` is now written twice per pipeline
+
+`run_website_audit` (M4) and `run_audit` (M6) both log an `agent_runs` row with
+`agent='audit'` — two phases of one task. Run-ledger queries and the M10 cost funnel must
+count / order-by-`started_at`, not assume a single row.
+
+### `_BOOKING_RE` / `_ORDERING_RE` fix (M4 code, surfaced by M6)
+
+Bare `book` matched *facebook*, so any business with a Facebook link read as
+`has_booking=True` — and M6 then dropped its `no_booking` gap. Added `\b` anchors on the
+English words in `agents/audit/website.py`; brand names (`calendly`, `foodpanda`, …) still
+match anywhere. M4's 16 website-audit tests stayed green.
+
+### Not in this milestone
+
+`weight` / `factor` on `business_evidence` (M7 scoring breakdown); any LLM call (M7); a real
+activity-recency social signal; `campaign_leads` linking (M6 covers the user's whole
+business pool, like M3–M5); re-running M4/M5 from the M6 endpoint (three separate stages;
+M6 upserts a thin `digital_audits` row if M4 hasn't run, and degrades rather than crashes).
