@@ -42,7 +42,11 @@ async def agent_run(
         run.status = RunStatus.FAILED
         raise
     else:
-        run.status = RunStatus.SUCCEEDED
+        # Promote only if the body left it alone: a runner may self-mark FAILED
+        # (e.g. M7 on a total LLM-layer failure) while still committing the valid
+        # partial work it produced.
+        if run.status is RunStatus.RUNNING:
+            run.status = RunStatus.SUCCEEDED
     finally:
         run.ended_at = datetime.now(UTC)
         run.duration_ms = int((perf_counter() - started) * 1000)

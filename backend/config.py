@@ -46,8 +46,15 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:3000"
 
     # ---- LLM (Phase 1: local Ollama) ----
+    # `fixture` (deterministic, offline — the only provider tests/CI use) or
+    # `ollama` (real local model, no API key). Anthropic is Phase 2.
+    llm_provider: str = "fixture"
     ollama_host: str = "http://localhost:11434"
+    ollama_model: str = "llama3.2"
     anthropic_api_key: str | None = None
+
+    # ---- Opportunity scoring (Milestone 7) ----
+    opportunity_llm_threshold: int = 50  # deterministic score at/above which the LLM runs
 
     # ---- Crawler ----
     crawler_user_agent: str = "TuklasBot/0.1 (+https://example.com/bot)"

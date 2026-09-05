@@ -57,6 +57,12 @@ class SocialPresence(StrEnum):
     VERY_ACTIVE = "very_active"
 
 
+class ScoreTier(StrEnum):
+    HIGH = "high"
+    MID = "mid"
+    LOW = "low"
+
+
 class OutreachChannel(StrEnum):
     EMAIL = "email"
     FACEBOOK_DM = "facebook_dm"
