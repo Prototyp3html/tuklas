@@ -12,6 +12,7 @@ from backend.api import (
     auth,
     campaigns,
     leads,
+    opportunity,
     outreach,
     profile,
     research,
@@ -36,7 +37,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for _module in (auth, profile, leads, campaigns, outreach, agent_runs, audit, research):
+for _module in (
+    auth,
+    profile,
+    leads,
+    campaigns,
+    outreach,
+    agent_runs,
+    audit,
+    research,
+    opportunity,
+):
     app.include_router(_module.router, prefix=settings.api_prefix)
 
 
